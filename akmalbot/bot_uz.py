@@ -122,11 +122,13 @@ async def send_pharmacies_list(callback: CallbackQuery):
     await callback.message.delete()
     
     for pharmacy in current_pharmacies:
-        text = f"🏥 <b>{pharmacy['title']}</b>"
         button = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📍 Joylashuv", callback_data=f"loc_{pharmacy['id']}")]
         ])
-        await callback.message.answer(text, reply_markup=button, parse_mode="HTML")
+        await callback.message.answer(f"🏥 <b>{pharmacy['title']}</b>\n"
+                                      f"📍 {pharmacy['address']}\n"
+                                      f"📞 {pharmacy['phone_number']}"
+                                      , reply_markup=button, parse_mode="HTML")
 
     pagination_buttons = []
     if page > 1:
@@ -196,7 +198,7 @@ async def process_text(message: Message, state: FSMContext):
 @router.message(AdminPost.waiting_for_photo, F.photo)
 async def process_photo(message: Message, state: FSMContext, bot: Bot):
  
-    GROUP_ID = -4818444712 
+    GROUP_ID = -1002524424597
     
     user_data = await state.get_data()
     text = user_data.get('text', '')
@@ -214,7 +216,7 @@ async def process_photo(message: Message, state: FSMContext, bot: Bot):
             caption=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
-        await message.answer("✅ Xabar guruhga muvaffaqiyatli yuborildi!")
+        await message.answer("✅ Xabar adminga muvaffaqiyatli yuborildi!")
     except Exception as e:
         await message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
     
@@ -252,11 +254,8 @@ async def search_dori(message: types.Message, state: FSMContext):
                     
                     product_type_display = "🔴 Рецептурный" if "Рецепт" in product_type_text else "🟢 Без рецепта"
                     
-                    # Format price with thousand separators if it's a number
                     if isinstance(price, (int, float)):
                         price = f"{price:,} so'm".replace(",", " ")
-                    
-                    # Send the message
                     await message.answer(
                         f"<b>🔍 {name}</b>\n\n"
                         f"💊 <i>Ishlab chiqaruvchi:</i> {producer}\n"
