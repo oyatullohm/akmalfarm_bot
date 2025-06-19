@@ -281,16 +281,35 @@ async def search_dori(message: types.Message, state: FSMContext):
                 reply_markup=keyboard
             )
             
-            # State ni yangi holatga o'tkazamiz
+            
             await state.set_state(BotStates.after_search_choice)
             
         else:
             await message.answer("❗️ Hech qanday dori topilmadi.")
-            await state.clear()
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔍 Yana qidirish", callback_data="search_again")],
+                [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="main_menu")],
+                [InlineKeyboardButton(text="❌ Yopish", callback_data="close_search")]
+            ])
+            
+            await message.answer(
+                "Qidiruv yakunlandi. Keyingi amalni tanlang:",
+                reply_markup=keyboard
+            )
+            await state.set_state(BotStates.after_search_choice)
     else:
         await message.answer("⚠️ Serverdan javob kelmadi.")
-        await state.clear()
-
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔍 Yana qidirish", callback_data="search_again")],
+                [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="main_menu")],
+                [InlineKeyboardButton(text="❌ Yopish", callback_data="close_search")]
+            ])
+            
+        await message.answer(
+                "Qidiruv yakunlandi. Keyingi amalni tanlang:",
+                reply_markup=keyboard
+            )
+        await state.set_state(BotStates.after_search_choice)
 @router.callback_query(BotStates.after_search_choice, lambda c: c.data in ["search_again", "main_menu", "close_search"])
 async def handle_search_actions(callback: CallbackQuery, state: FSMContext):
     action = callback.data
