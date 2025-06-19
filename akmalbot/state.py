@@ -11,6 +11,8 @@ class BotStates(StatesGroup):
 class AdminPost(StatesGroup):
     waiting_for_text = State()
     waiting_for_photo = State()
+    photo_choice = State()
+    
 
 
 def sanitize_text(text):

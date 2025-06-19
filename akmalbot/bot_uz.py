@@ -34,7 +34,6 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 router = Router()
 TOKEN  = env.str('TOKEN')
-# TOKEN = "7915282420:AAFFAj5SSgw8OfmBZ7qckCQYSC9tquRXY9I"
 
 dp = Dispatcher()
 @dp.message(CommandStart())
@@ -187,28 +186,71 @@ async def admin_start(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AdminPost.waiting_for_text)
     await callback.answer()
 
-
 @router.message(AdminPost.waiting_for_text)
 async def process_text(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
-    await message.answer("🖼 Endi ritsep rasmni yuboring:")
-    await state.set_state(AdminPost.waiting_for_photo)
+    
+    photo_choice_markup = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="✅ Ha, rasm qo'shish", callback_data="add_photo"),
+                InlineKeyboardButton(text="❌ Yo'q, faqat matn", callback_data="skip_photo")
+            ]
+        ]
+    )
+    
+    await message.answer(
+        "Rasm qo'shishni xohlaysizmi?",
+        reply_markup=photo_choice_markup
+    )
+    await state.set_state(AdminPost.photo_choice)
 
+@router.callback_query(AdminPost.photo_choice, F.data == "add_photo")
+async def request_photo(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer("🖼 Endi ritsep rasmni yuboring:")
+    await state.set_state(AdminPost.waiting_for_photo)
+    await callback.answer()
+
+@router.callback_query(AdminPost.photo_choice, F.data == "skip_photo")
+async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await callback.message.edit_reply_markup(reply_markup=None)
+    
+    # State dan text ni olish
+    user_data = await state.get_data()
+    text = user_data.get('text', '')
+    
+    # GROUP_ID = -1002524424597  
+    GROUP_ID = -4724451433 
+    user = callback.from_user
+    username = f"@{user.username}" if user.username else user.full_name
+    user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
+    
+    try:
+        await bot.send_message(
+            chat_id=GROUP_ID,
+            text=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
+            parse_mode="HTML"
+        )
+        await callback.message.answer("✅ Xabar guruhga muvaffaqiyatli yuborildi!")
+    except Exception as e:
+        await callback.message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
+    
+    await state.clear()
 
 @router.message(AdminPost.waiting_for_photo, F.photo)
 async def process_photo(message: Message, state: FSMContext, bot: Bot):
- 
-    GROUP_ID = -1002524424597
-    
+
     user_data = await state.get_data()
     text = user_data.get('text', '')
-    photo = message.photo[-1]  
     
-
+    # GROUP_ID = -1002524424597  
+    GROUP_ID = -4724451433 
     user = message.from_user
-    user_profile = f"<a href='tg://user?id={user.id}'>{user.full_name}</a>"
+    username = f"@{user.username}" if user.username else user.full_name
+    user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
+    photo = message.photo[-1] 
     
-
     try:
         await bot.send_photo(
             chat_id=GROUP_ID,
@@ -216,11 +258,12 @@ async def process_photo(message: Message, state: FSMContext, bot: Bot):
             caption=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
-        await message.answer("✅ Xabar adminga muvaffaqiyatli yuborildi!")
+        await message.answer("✅ Xabar guruhga muvaffaqiyatli yuborildi!")
     except Exception as e:
         await message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
     
     await state.clear()
+    
 
 @router.message(Command("groupid", "id"))
 async def get_group_id(message: Message):
