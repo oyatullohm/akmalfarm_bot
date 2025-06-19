@@ -6,6 +6,7 @@ class BotStates(StatesGroup):
     menu_select = State()
     pharmacy_list = State()
     dori_info_search = State()
+    after_search_choice = State()
 
 class AdminPost(StatesGroup):
     waiting_for_text = State()

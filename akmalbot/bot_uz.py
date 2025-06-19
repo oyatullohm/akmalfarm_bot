@@ -232,12 +232,13 @@ async def get_group_id(message: Message):
 @router.message(BotStates.dori_info_search)
 async def search_dori(message: types.Message, state: FSMContext):
     dori_nomi = message.text.strip()
-
+    
     response = requests.get(f'https://akmalfarm.uz/api/product/?search={dori_nomi}')
 
     if response.status_code == 200:
         data = response.json()
         if isinstance(data, list) and data:
+            # Topilgan dorilarni chiqaramiz
             for product in data[:5]:
                 try:
                     name = product.get('name', 'Nomaʼlum')
@@ -256,6 +257,7 @@ async def search_dori(message: types.Message, state: FSMContext):
                     
                     if isinstance(price, (int, float)):
                         price = f"{price:,} so'm".replace(",", " ")
+                    
                     await message.answer(
                         f"<b>🔍 {name}</b>\n\n"
                         f"💊 <i>Ishlab chiqaruvchi:</i> {producer}\n"
@@ -265,15 +267,49 @@ async def search_dori(message: types.Message, state: FSMContext):
                         parse_mode="HTML"
                     )
                 except Exception as e:
-                    continue  
-                # for text_part in split_text(clean_text, max_length=3000):
-                    # await message.answer(text_part)
+                    continue
+            
+            # Inline keyboard yaratamiz
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔍 Yana qidirish", callback_data="search_again")],
+                [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="main_menu")],
+                [InlineKeyboardButton(text="❌ Yopish", callback_data="close_search")]
+            ])
+            
+            await message.answer(
+                "Qidiruv yakunlandi. Keyingi amalni tanlang:",
+                reply_markup=keyboard
+            )
+            
+            # State ni yangi holatga o'tkazamiz
+            await state.set_state(BotStates.after_search_choice)
+            
         else:
             await message.answer("❗️ Hech qanday dori topilmadi.")
+            await state.clear()
     else:
         await message.answer("⚠️ Serverdan javob kelmadi.")
+        await state.clear()
 
-    await state.clear()
+@router.callback_query(BotStates.after_search_choice, lambda c: c.data in ["search_again", "main_menu", "close_search"])
+async def handle_search_actions(callback: CallbackQuery, state: FSMContext):
+    action = callback.data
+    
+    if action == "search_again":
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.message.answer("Yana qidirish uchun dori nomini yuboring:")
+        await state.set_state(BotStates.dori_info_search)
+        
+    elif action == "main_menu":
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await send_main_menu(callback.message, state)
+        
+    elif action == "close_search":
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.message.answer("Qidiruv yakunlandi. Istaingizcha /menu buyrug'i bilan menyuni ochishingiz mumkin.")
+        await state.clear()
+    
+    await callback.answer()
 
 
 @router.callback_query(lambda c:c.data == "diagnostika")
