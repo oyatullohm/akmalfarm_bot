@@ -1,24 +1,6 @@
-from aiogram.client.default import DefaultBotProperties
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import CallbackQuery, BotCommand
-from aiogram.fsm.context import FSMContext
-from aiogram import Bot, Dispatcher, html
-from aiogram.filters import CommandStart
-from asgiref.sync import sync_to_async
-from aiogram.filters import Command
-from aiogram.enums import ParseMode
-from aiogram.types import Message
-from aiogram import Router, types
-from aiogram import F
 from button import *
+from bot_ru import *
 from state import * 
-import requests
-import asyncio
-import logging
-import environ
-import django
-import sys
-import os 
 
 
 env = environ.Env()
@@ -190,14 +172,7 @@ async def admin_start(callback: CallbackQuery, state: FSMContext):
 async def process_text(message: Message, state: FSMContext):
     await state.update_data(text=message.text)
     
-    photo_choice_markup = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="✅ Ha, rasm qo'shish", callback_data="add_photo"),
-                InlineKeyboardButton(text="❌ Yo'q, faqat matn", callback_data="skip_photo")
-            ]
-        ]
-    )
+ 
     
     await message.answer(
         "Rasm qo'shishni xohlaysizmi?",
@@ -216,35 +191,38 @@ async def request_photo(callback: CallbackQuery, state: FSMContext):
 async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
     await callback.message.edit_reply_markup(reply_markup=None)
     
-    # State dan text ni olish
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    # GROUP_ID = -1002524424597  
+    # GROUP_ID = -1002524424597 
     GROUP_ID = -4724451433 
     user = callback.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
     
     try:
-        await bot.send_message(
+        sent_msg = await bot.send_message(
             chat_id=GROUP_ID,
             text=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
-        await callback.message.answer("✅ Xabar guruhga muvaffaqiyatli yuborildi!")
+        # Foydalanuvchini eslab qolamiz
+        message_user_map[sent_msg.message_id] = user.id
+
+        await callback.message.answer("✅ Xabar guruhga yuborildi!\n"
+                                      "Adminlar shu xabarga javob yozishlari mumkin")
     except Exception as e:
-        await callback.message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
+        await callback.message.answer(f"❌ Xatolik: {str(e)}")
     
     await state.clear()
 
+
 @router.message(AdminPost.waiting_for_photo, F.photo)
 async def process_photo(message: Message, state: FSMContext, bot: Bot):
-
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    # GROUP_ID = -1002524424597  
+    # GROUP_ID = -1002524424597 
     GROUP_ID = -4724451433 
     user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
@@ -252,18 +230,38 @@ async def process_photo(message: Message, state: FSMContext, bot: Bot):
     photo = message.photo[-1] 
     
     try:
-        await bot.send_photo(
+        sent_msg = await bot.send_photo(
             chat_id=GROUP_ID,
             photo=photo.file_id,
             caption=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
-        await message.answer("✅ Xabar guruhga muvaffaqiyatli yuborildi!")
+        message_user_map[sent_msg.message_id] = user.id
+
+        await message.answer("✅ Xabar guruhga yuborildi!\n"
+                             "Adminlar shu xabarga javob yozishlari mumkin")
     except Exception as e:
-        await message.answer(f"❌ Xatolik yuz berdi: {str(e)}")
+        await message.answer(f"❌ Xatolik: {str(e)}")
     
     await state.clear()
-    
+
+@router.message(F.reply_to_message)
+async def handle_reply(message: Message, bot: Bot):
+    original_msg_id = message.reply_to_message.message_id
+    user_id = message_user_map.get(original_msg_id)
+
+    if user_id:
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text=f"📩 Siz yuborgan xabarga javob:\n\n{message.text}"
+            )
+            await message.reply("✅ Javob foydalanuvchiga yuborildi.")
+        except Exception as e:
+            await message.reply(f"❌ Foydalanuvchiga yuborilmadi: {str(e)}")
+    else:
+        await message.reply("⚠️ Bu xabarning egasi topilmadi.")
+
 
 @router.message(Command("groupid", "id"))
 async def get_group_id(message: Message):
@@ -430,6 +428,9 @@ async def other(callback:CallbackQuery):
     await callback.answer()
  
 
+
+
+    
 async def set_commands(bot: Bot):
     commands = [
         BotCommand(command="start", description="Botni ishga tushirish"),

@@ -29,13 +29,13 @@ builder_text_ru.row(InlineKeyboardButton(text="❓ Другой вопрос", c
 
 inline_ru_text = builder_text_ru.as_markup()
 
+photo_choice = InlineKeyboardBuilder()
+photo_choice.row(
+    InlineKeyboardButton(text="✅ Ha, rasm qo'shish", callback_data="add_photo"),
+    InlineKeyboardButton(text="❌ Yo'q, faqat matn", callback_data="skip_photo")
+)
+photo_choice_markup = photo_choice.as_markup()
 
 
-
-
-
-go_back = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⬅️ Ortga", callback_data="go_back")]
-    ])
 
 
