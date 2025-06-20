@@ -32,6 +32,9 @@ django.setup()
 from main.models import *
 
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+    
+# GROUP_ID = -1002524424597 
+GROUP_ID = -4724451433 
 
 TOKEN  = env.str('TOKEN')
 

@@ -172,8 +172,7 @@ async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    GROUP_ID = -1002524424597 
-    # GROUP_ID = -4724451433 
+
     user = callback.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
@@ -184,7 +183,7 @@ async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
             text=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
-        # Foydalanuvchini eslab qolamiz
+
         message_user_map[sent_msg.message_id] = user.id
 
         await callback.message.answer("✅ Xabar guruhga yuborildi!\n"
@@ -199,9 +198,7 @@ async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
 async def process_photo(message: Message, state: FSMContext, bot: Bot):
     user_data = await state.get_data()
     text = user_data.get('text', '')
-    
-    GROUP_ID = -1002524424597 
-    # GROUP_ID = -4724451433 
+
     user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
@@ -257,7 +254,7 @@ async def search_dori(message: types.Message, state: FSMContext):
     if response.status_code == 200:
         data = response.json()
         if isinstance(data, list) and data:
-            # Topilgan dorilarni chiqaramiz
+
             for product in data[:5]:
                 try:
                     name = product.get('name', 'Nomaʼlum')
@@ -287,8 +284,7 @@ async def search_dori(message: types.Message, state: FSMContext):
                     )
                 except Exception as e:
                     continue
-            
-            # Inline keyboard yaratamiz
+
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="🔍 Yana qidirish", callback_data="search_again")],
                 [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="main_menu")],

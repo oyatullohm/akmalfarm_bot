@@ -206,8 +206,7 @@ async def skip_photo_ru(callback: CallbackQuery, state: FSMContext, bot: Bot):
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    # GROUP_ID = -4724451433 
-    GROUP_ID = -1002524424597 
+    
     user = callback.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
@@ -233,8 +232,6 @@ async def process_photo_ru(message: Message, state: FSMContext, bot: Bot):
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    # GROUP_ID = -4724451433 
-    GROUP_ID = -1002524424597 
     user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
