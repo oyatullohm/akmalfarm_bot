@@ -196,24 +196,6 @@ async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
 
 
 
-@router.message(F.reply_to_message)
-async def handle_reply(message: Message, bot: Bot):
-    original_msg_id = message.reply_to_message.message_id
-    user_id = message_user_map.get(original_msg_id)
-
-    if user_id:
-        try:
-            await bot.send_message(
-                chat_id=user_id,
-                text=f"📩 Siz yuborgan xabarga javob:\n\n{message.text}"
-            )
-            await message.reply("✅ Javob foydalanuvchiga yuborildi.")
-        except Exception as e:
-            await message.reply(f"❌ Foydalanuvchiga yuborilmadi: {str(e)}")
-    else:
-        await message.reply("⚠️ Bu xabarning egasi topilmadi.")
-
-
 @router.message(Command("groupid", "id"))
 async def get_group_id(message: Message):
     if message.chat.type in ["group", "supergroup"]:

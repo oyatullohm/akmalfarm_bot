@@ -253,21 +253,49 @@ async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
 
 
 @router.message(F.reply_to_message)
-async def handle_reply_ru(message: Message, bot: Bot):
+async def handle_reply(message: Message, bot: Bot):
     original_msg_id = message.reply_to_message.message_id
     user_id = message_user_map.get(original_msg_id)
 
-    if user_id:
+    if not user_id:
+        await message.reply(texts["user_not_found"]["ru"])
+        return
+
+    try:
+        # Foydalanuvchi tilini olish
         try:
+            tg_user = await sync_to_async(TelegramUser.objects.get)(user_id=user_id)
+            user_lang = tg_user.language if tg_user.language in ["uz", "ru"] else "uz"
+        except TelegramUser.DoesNotExist:
+            user_lang = "uz"
+
+        if message.photo:
+            photo = message.photo[-1].file_id
+            caption = message.caption if message.caption else ""
+            # Agar caption bo‘sh bo‘lsa va text bor bo‘lsa, uni captionga qo‘shamiz (Telegram limitiga e'tibor bering)
+            if caption == "" and message.text:
+                caption = message.text
+
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=photo,
+                caption=caption,
+                parse_mode="HTML"
+            )
+
+        elif message.text:
+            text_to_send = message.text if message.text else ""
             await bot.send_message(
                 chat_id=user_id,
-                text=f"📩 Ответ на ваше сообщение:\n\n{message.text}"
+                text=f"{texts['response_prefix'][user_lang]}{text_to_send}"
             )
-            await message.reply("✅ Ответ отправлен пользователю.")
-        except Exception as e:
-            await message.reply(f"❌ Не удалось отправить пользователю: {str(e)}")
-    else:
-        await message.reply("⚠️ Получатель этого сообщения не найден.")
+        else:
+            await message.reply(texts["send_text_or_photo"][user_lang])
+            return
+
+        await message.reply(texts["response_sent"][user_lang])
+    except Exception as e:
+        await message.reply(f"❌ {str(e)}")
 
 
 @router.callback_query(lambda c: c.data == "diagnostika_ru")

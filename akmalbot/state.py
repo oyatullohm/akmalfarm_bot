@@ -64,7 +64,24 @@ class AdminPost(StatesGroup):
 
 
 message_user_map = {}
-
+texts = {
+    "response_sent": {
+        "uz": "✅ Javob foydalanuvchiga yuborildi.",
+        "ru": "✅ Ответ отправлен пользователю."
+    },
+    "send_text_or_photo": {
+        "uz": "⚠️ Iltimos, faqat matn yoki rasm yuboring.",
+        "ru": "⚠️ Пожалуйста, отправьте текст или фото."
+    },
+    "user_not_found": {
+        "uz": "⚠️ Bu xabarning egasi topilmadi.",
+        "ru": "⚠️ Владелец этого сообщения не найден."
+    },
+    "response_prefix": {
+        "uz": "📩 Siz yuborgan xabarga javob:\n\n",
+        "ru": "📩 Ответ на ваше сообщение:\n\n"
+    }
+}
 
 
 def sanitize_text(text):
