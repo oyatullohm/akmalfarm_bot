@@ -161,7 +161,7 @@ async def process_text(message: Message, state: FSMContext):
 @router.callback_query(AdminPost.photo_choice, F.data == "add_photo")
 async def request_photo(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("🖼 Endi ritsep rasmni yuboring:")
+    await callback.message.answer("🖼 Retsept rasmini yuboring:")
     await state.set_state(AdminPost.waiting_for_photo)
     await callback.answer()
 
@@ -186,8 +186,8 @@ async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
 
         message_user_map[sent_msg.message_id] = user.id
 
-        await callback.message.answer("✅ Xabar guruhga yuborildi!\n"
-                                      "Adminlar shu xabarga javob yozishlari mumkin")
+        await callback.message.answer("✅ Xabar yuborildi!\n"
+                                      "Mutaxassis javobini kuting")
     except Exception as e:
         await callback.message.answer(f"❌ Xatolik: {str(e)}")
     
@@ -213,8 +213,8 @@ async def process_photo(message: Message, state: FSMContext, bot: Bot):
         )
         message_user_map[sent_msg.message_id] = user.id
 
-        await message.answer("✅ Xabar guruhga yuborildi!\n"
-                             "Adminlar shu xabarga javob yozishlari mumkin")
+        await message.answer("✅ Xabar  yuborildi!\n"
+                             "Mutaxassis javobini kuting")
     except Exception as e:
         await message.answer(f"❌ Xatolik: {str(e)}")
     
