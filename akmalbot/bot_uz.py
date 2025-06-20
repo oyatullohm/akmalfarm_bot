@@ -315,7 +315,7 @@ async def search_dori(message: types.Message, state: FSMContext):
     else:
         await message.answer("⚠️ Serverdan javob kelmadi.")
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🔍 Yana qidirish", callback_data="search_again")],
+                [InlineKeyboardButton(text="🔍 Qidirish", callback_data="search_again")],
                 [InlineKeyboardButton(text="🏠 Bosh menyu", callback_data="main_menu")],
                 [InlineKeyboardButton(text="❌ Yopish", callback_data="close_search")]
             ])
