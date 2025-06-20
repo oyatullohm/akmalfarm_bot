@@ -1,0 +1,50 @@
+{% extends "wrappaer.html" %}
+{% block content %}
+
+<div class="container my-0">
+  <div class="row justify-content-center">
+    <div class="col-md-12 col-xl-10">
+      <div class="card shadow-lg border-0 rounded-0">
+
+        <div class="card my-5">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+              <h3 class="mb-0"><b>Doctor</b></h3>
+            </div>
+            <form method="post">
+          {% csrf_token %}
+            <div class="form-group mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" name="name" class="form-control" required placeholder="name">
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label">Pozitsion</label>
+              <input type="text" name="pozitsion" class="form-control" required placeholder="Pozitsion">
+            </div> 
+            <div class="form-group mb-3">
+              <label class="form-label">Telegram</label>
+              <input type="text" name="telegram" class="form-control" required placeholder="Telegram Username">
+            </div>
+            <div class="form-group mb-3">
+              <label class="form-label">Status</label>
+              <select class="form-control" name="status" >
+                <option value="doctor">doctor</option>
+                <option value="diagnostika">diagnostika</option>
+
+              </select>
+            </div>
+
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+          </form>
+ 
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
