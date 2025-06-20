@@ -138,87 +138,63 @@ async def dori_info(callback:CallbackQuery,  state: FSMContext):
     await state.set_state(BotStates.dori_info_search) 
     await callback.answer()
 
+@router.message(Command("cancel"))
+async def cancel_feedback(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer("❌ Aloqa tugatildi. Qayta yozish uchun  dan Retsept yuklash tallang.")
 
 
+# Aloqa rejimini yoqamiz
 @router.callback_query(lambda c: c.data == "aloqa")
 async def admin_start(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("📝 Iltimos, xabar matnini yuboring:")
+    await callback.message.answer(
+        "📝 Siz  savollaringizni yuborishingiz mumkin.\n"
+        "Matn yoki rasm yuboring, biz javob beramiz.\n\n"
+        "⛔ Yopish uchun: /cancel"
+    )
     await state.set_state(AdminPost.waiting_for_text)
     await callback.answer()
 
-@router.message(AdminPost.waiting_for_text)
-async def process_text(message: Message, state: FSMContext):
-    await state.update_data(text=message.text)
-    
- 
-    
-    await message.answer(
-        "Rasm qo'shishni xohlaysizmi?",
-        reply_markup=photo_choice_markup
-    )
-    await state.set_state(AdminPost.photo_choice)
-
-@router.callback_query(AdminPost.photo_choice, F.data == "add_photo")
-async def request_photo(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("🖼 Retsept rasmini yuboring:")
-    await state.set_state(AdminPost.waiting_for_photo)
-    await callback.answer()
-
-@router.callback_query(AdminPost.photo_choice, F.data == "skip_photo")
-async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
-    await callback.message.edit_reply_markup(reply_markup=None)
-    
-    user_data = await state.get_data()
-    text = user_data.get('text', '')
-    
-
-    user = callback.from_user
+# Har safar matn yuborilsa, admin guruhga jo‘natamiz
+@router.message(AdminPost.waiting_for_text, F.text)
+async def process_user_text(message: Message, state: FSMContext, bot: Bot):
+    user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
-    
+    text = message.text
+
     try:
         sent_msg = await bot.send_message(
             chat_id=GROUP_ID,
             text=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
-
         message_user_map[sent_msg.message_id] = user.id
-
-        await callback.message.answer("✅ Xabar yuborildi!\n"
-                                      "Mutaxassis javobini kuting")
+        await message.answer("✅ Xabaringiz yuborildi. Mutaxassis javobini kuting.")
     except Exception as e:
-        await callback.message.answer(f"❌ Xatolik: {str(e)}")
-    
-    await state.clear()
+        await message.answer(f"❌ Xatolik: {str(e)}")
 
-
-@router.message(AdminPost.waiting_for_photo, F.photo)
-async def process_photo(message: Message, state: FSMContext, bot: Bot):
-    user_data = await state.get_data()
-    text = user_data.get('text', '')
-
+@router.message(AdminPost.waiting_for_text, F.photo)
+async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
     user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
-    photo = message.photo[-1] 
-    
+    photo = message.photo[-1]
+    caption = message.caption or "🖼 Rasm"
+
     try:
         sent_msg = await bot.send_photo(
             chat_id=GROUP_ID,
             photo=photo.file_id,
-            caption=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
+            caption=f"{caption}\n\n👤 Yuboruvchi: {user_profile}",
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id
-
-        await message.answer("✅ Xabar  yuborildi!\n"
-                             "Mutaxassis javobini kuting")
+        await message.answer("✅ Rasmingiz yuborildi. Mutaxassis javobini kuting.")
     except Exception as e:
         await message.answer(f"❌ Xatolik: {str(e)}")
-    
-    await state.clear()
+
+
 
 @router.message(F.reply_to_message)
 async def handle_reply(message: Message, bot: Bot):
@@ -408,9 +384,9 @@ async def other(callback:CallbackQuery):
     
 async def set_commands(bot: Bot):
     commands = [
-        BotCommand(command="start", description="Botni ishga tushirish"),
-        BotCommand(command="menu", description="Asosiy menyu")
-    ]
+        BotCommand(command="start", description="/start"),
+        BotCommand(command="menu", description="/menu"),
+        BotCommand(command="cancel", description="/cancel")]
     await bot.set_my_commands(commands)
 
 

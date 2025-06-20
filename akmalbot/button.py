@@ -19,7 +19,7 @@ inline_uz_text = builder_text_uz.as_markup()
 
 
 builder_text_ru = InlineKeyboardBuilder()
-builder_text_ru.row(InlineKeyboardButton(text="📄  Отправить рецепт", callback_data="aloqa_ru"))#1
+builder_text_ru.row(InlineKeyboardButton(text="📄 Отправить рецепт", callback_data="aloqa_ru"))#1
 builder_text_ru.row(InlineKeyboardButton(text="🚚 Доставка",url="https://akmalfarm.uz"))#6
 builder_text_ru.row(InlineKeyboardButton(text="👨‍⚕ Консультация врача", callback_data="maslahat_ru"))#5
 builder_text_ru.row(InlineKeyboardButton(text="👩‍⚕️ Женский центр", callback_data="diagnostika_ru"))#4
@@ -29,17 +29,4 @@ builder_text_ru.row(InlineKeyboardButton(text="❓ Другой вопрос", c
 
 inline_ru_text = builder_text_ru.as_markup()
 
-photo_choice = InlineKeyboardBuilder()
-photo_choice.row(
-    InlineKeyboardButton(text="✅ Ha, rasm qo'shish", callback_data="add_photo"),
-    InlineKeyboardButton(text="❌ Yo'q, faqat matn", callback_data="skip_photo")
-)
-photo_choice_markup = photo_choice.as_markup()
 
-
-photo_choice_ru = InlineKeyboardBuilder()
-photo_choice_ru.row(
-    InlineKeyboardButton(text="✅ Да, добавить изображение", callback_data="add_photo_ru"),
-    InlineKeyboardButton(text="❌ Нет, только текст", callback_data="skip_photo_ru")
-)
-photo_choice_markup_ru = photo_choice_ru.as_markup()

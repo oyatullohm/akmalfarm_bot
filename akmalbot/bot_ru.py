@@ -22,6 +22,27 @@ async def get_pharmacies():
         pharmacies_cache = response.json()
     return pharmacies_cache
 
+@router.message(Command("cancel"))
+async def cancel_feedback(message: Message, state: FSMContext):
+    await state.clear()
+    
+    user_id = message.from_user.id
+
+    lang = 'uz'
+    try:
+        user = await sync_to_async(TelegramUser.objects.get)(user_id=user_id)
+        lang = user.language
+    except TelegramUser.DoesNotExist:
+        pass 
+
+    if lang == 'ru':
+        text = "❌ Связь завершена. Чтобы снова отправить сообщение, выберите « Отправить рецепт » из меню."
+    else:
+        text = "❌ Aloqa tugatildi. Qayta yozish uchun menu dan « Retsept yuklashni » tanlang."
+
+    await message.answer(text)
+
+
 @router.callback_query(lambda c: c.data.startswith(("dorihona_ru", "page_")))
 async def send_pharmacies_list_ru(callback: CallbackQuery):
     pharmacies = await get_pharmacies()
@@ -178,39 +199,23 @@ async def handle_search_actions_ru(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(lambda c: c.data == "aloqa_ru")
 async def admin_start_ru(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer("📝 Пожалуйста, отправьте текст сообщения:")
+    await callback.message.answer(
+        "📝 Вы можете отправить свои вопросы.\n"
+        "Отправьте текст или фото, и мы обязательно ответим.\n\n"
+        "⛔ Чтобы завершить, введите команду: /cancel"
+    )
     await state.set_state(AdminPost.waiting_for_text_ru)
     await callback.answer()
 
-@router.message(AdminPost.waiting_for_text_ru)
-async def process_text_ru(message: Message, state: FSMContext):
-    await state.update_data(text=message.text)
-    
-    await message.answer(
-        "Хотите добавить изображение?",
-        reply_markup=photo_choice_markup_ru
-    )
-    await state.set_state(AdminPost.photo_choice_ru)
 
-@router.callback_query(AdminPost.photo_choice_ru, F.data == "add_photo_ru")
-async def request_photo_ru(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("🖼 Пожалуйста, отправьте изображение рецепта:")
-    await state.set_state(AdminPost.waiting_for_photo_ru)
-    await callback.answer()
 
-@router.callback_query(AdminPost.photo_choice_ru, F.data == "skip_photo_ru")
-async def skip_photo_ru(callback: CallbackQuery, state: FSMContext, bot: Bot):
-    await callback.message.edit_reply_markup(reply_markup=None)
-    
-    user_data = await state.get_data()
-    text = user_data.get('text', '')
-    
-    
-    user = callback.from_user
+@router.message(AdminPost.waiting_for_text_ru, F.text)
+async def process_user_text_ru(message: Message, state: FSMContext, bot: Bot):
+    user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
-    
+    text = message.text
+
     try:
         sent_msg = await bot.send_message(
             chat_id=GROUP_ID,
@@ -218,40 +223,34 @@ async def skip_photo_ru(callback: CallbackQuery, state: FSMContext, bot: Bot):
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id
-
-        await callback.message.answer("✅ Сообщение отправлено в группу!\n"
-                                      "Админы могут ответить на это сообщение.")
+        await message.answer("✅ Ваше сообщение отправлено. Ожидайте ответ специалиста.")
     except Exception as e:
-        await callback.message.answer(f"❌ Ошибка: {str(e)}")
-    
-    await state.clear()
+        await message.answer(f"❌ Ошибка: {str(e)}")
 
 
-@router.message(AdminPost.waiting_for_photo_ru, F.photo)
-async def process_photo_ru(message: Message, state: FSMContext, bot: Bot):
-    user_data = await state.get_data()
-    text = user_data.get('text', '')
-    
+@router.message(AdminPost.waiting_for_text_ru, F.photo)
+async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
     user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
-    photo = message.photo[-1] 
-    
+    photo = message.photo[-1]
+    caption = message.caption or "🖼 Фото"
+
     try:
         sent_msg = await bot.send_photo(
             chat_id=GROUP_ID,
             photo=photo.file_id,
-            caption=f"{text}\n\n👤 Отправитель: {user_profile}",
+            caption=f"{caption}\n\n👤 Отправитель: {user_profile}",
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id
-
-        await message.answer("✅ Сообщение с фото отправлено в группу!\n"
-                             "Админы могут ответить на это сообщение.")
+        await message.answer("✅ Ваше фото отправлено. Ожидайте ответ специалиста.")
     except Exception as e:
         await message.answer(f"❌ Ошибка: {str(e)}")
-    
-    await state.clear()
+
+
+
+
 
 @router.message(F.reply_to_message)
 async def handle_reply_ru(message: Message, bot: Bot):
