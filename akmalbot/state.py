@@ -20,18 +20,45 @@ import django
 import sys
 import re
 import os 
+
+
+env = environ.Env()
+environ.Env.read_env()
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Admin.settings') 
+django.setup()
+from main.models import *
+
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+TOKEN  = env.str('TOKEN')
+
+dp = Dispatcher()
+router = Router()
+
+
 class BotStates(StatesGroup):
-    lang_select = State()
     menu_select = State()
-    pharmacy_list = State()
     dori_info_search = State()
     after_search_choice = State()
+    
+    menu_select_ru = State()
+    dori_info_search_ru = State()
+    after_search_choice_ru = State()
 
 class AdminPost(StatesGroup):
     waiting_for_text = State()
     waiting_for_photo = State()
     photo_choice = State()
     waiting_for_group_response = State()
+    
+    waiting_for_text_ru = State()
+    waiting_for_photo_ru = State()
+    photo_choice_ru = State()
+    waiting_for_group_response_ru  = State()
+
 
 message_user_map = {}
 

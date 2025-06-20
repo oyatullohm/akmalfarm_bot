@@ -1,23 +1,8 @@
 from button import *
 from bot_ru import *
-from state import * 
 
 
-env = environ.Env()
-environ.Env.read_env()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(BASE_DIR)
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Admin.settings') 
-django.setup()
-from main.models import *
-
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
-router = Router()
-TOKEN  = env.str('TOKEN')
-
-dp = Dispatcher()
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     text = (
@@ -60,7 +45,6 @@ async def handle_language_selection(callback: CallbackQuery, state: FSMContext):
         }
     )
     
-
     await send_main_menu(callback.message, state, lang)
     await callback.answer()
 
@@ -75,15 +59,9 @@ async def handle_menu_command(message: Message, state: FSMContext):
     
     await send_main_menu(message, state, lang)
 
-pharmacies_cache = None
 
-async def get_pharmacies():
-    global pharmacies_cache
-    if pharmacies_cache is None:
-        import requests
-        response = requests.get("https://akmalfarm.uz/api/apteka/")
-        pharmacies_cache = response.json()
-    return pharmacies_cache
+
+
 
 @router.callback_query(lambda c: c.data.startswith(("dorihona_uz", "page_")))
 async def send_pharmacies_list(callback: CallbackQuery):
@@ -194,8 +172,8 @@ async def skip_photo(callback: CallbackQuery, state: FSMContext, bot: Bot):
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    # GROUP_ID = -1002524424597 
-    GROUP_ID = -4724451433 
+    GROUP_ID = -1002524424597 
+    # GROUP_ID = -4724451433 
     user = callback.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
@@ -222,8 +200,8 @@ async def process_photo(message: Message, state: FSMContext, bot: Bot):
     user_data = await state.get_data()
     text = user_data.get('text', '')
     
-    # GROUP_ID = -1002524424597 
-    GROUP_ID = -4724451433 
+    GROUP_ID = -1002524424597 
+    # GROUP_ID = -4724451433 
     user = message.from_user
     username = f"@{user.username}" if user.username else user.full_name
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
@@ -351,6 +329,7 @@ async def search_dori(message: types.Message, state: FSMContext):
                 reply_markup=keyboard
             )
         await state.set_state(BotStates.after_search_choice)
+
 @router.callback_query(BotStates.after_search_choice, lambda c: c.data in ["search_again", "main_menu", "close_search"])
 async def handle_search_actions(callback: CallbackQuery, state: FSMContext):
     action = callback.data
