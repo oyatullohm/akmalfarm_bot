@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import Doctor
 
-@csrf_exempt  # yoki yaxshisi: `@require_POST` + CSRF token bilan ishlating
+@csrf_exempt 
 def toggle_status(request, user_id):
     if request.method == 'POST':
         try:

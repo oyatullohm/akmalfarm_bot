@@ -44,7 +44,7 @@ def login_(request):
         except:
             pass
     return render(request, 'auth/login.html')
-
+@is_login
 def add_doctor(request):
     if request.method == "POST":
         name= request.POST.get('name')
@@ -111,7 +111,7 @@ def index(request):
 @is_login
 def telegram(request):
     users = TelegramUser.objects.all().order_by('-created_at')
-    paginator = Paginator(users, 3) 
+    paginator = Paginator(users, 30) 
 
     page_number = request.GET.get('page') 
     page_obj = paginator.get_page(page_number)
