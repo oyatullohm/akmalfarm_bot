@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- [Head] start -->
+{% load static %}
 
 <head>
-  <title>Home</title>
-  
+  <title>Login</title>
+  <!-- [Meta] -->
+  <meta charset="utf-8">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="Mantis is made using Bootstrap 5 design framework. Download the free admin template & use it for your project.">
+  <meta name="keywords" content="Mantis, Dashboard UI Kit, Bootstrap 5, Admin Template, Admin Dashboard, CRM, CMS, Bootstrap Admin Template">
+  <meta name="author" content="CodedThemes"> -->
+
   <!-- [Favicon] icon -->
-  <!-- <link rel="icon" href="/static/assets/images/favicon.svg" type="image/x-icon"> [Google Font] Family -->
+  <!-- <link rel="icon" href="{%  static 'assets/images/favicon.svg" type="image/x-icon"> [Google Font] Family -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" id="main-font-link">
 <!-- [Tabler Icons] https://tablericons.com -->
-<link rel="stylesheet" href="/static/assets/fonts/tabler-icons.min.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/tabler-icons.min.css' %}" >
 <!-- [Feather Icons] https://feathericons.com -->
-<link rel="stylesheet" href="/static/assets/fonts/feather.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/feather.css' %}" >
 <!-- [Font Awesome Icons] https://fontawesome.com/icons -->
-<link rel="stylesheet" href="/static/assets/fonts/fontawesome.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/fontawesome.css' %}" >
 <!-- [Material Icons] https://fonts.google.com/icons -->
-<link rel="stylesheet" href="/static/assets/fonts/material.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/material.css' %}" >
 <!-- [Template CSS Files] -->
-<link rel="stylesheet" href="/static/assets/css/style.css" id="main-style-link" >
-<link rel="stylesheet" href="/static/assets/css/style-preset.css" >
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}" id="main-style-link" >
+<link rel="stylesheet" href="{% static 'assets/css/style-preset.css' %}" >
 
 </head>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
@@ -42,7 +49,7 @@
           <a class="nav-link active" aria-current="page" href="/telegram"><h3>Telegram user</h3></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active " aria-current="page" href="/logout"><h3 class="text-danger">Logout</h3></a>
+          <a class="nav-link active " aria-current="page" href="/logout/"><h3 class="text-danger">Logout</h3></a>
         </li>
 
         
@@ -56,15 +63,11 @@
 
 {% block content %}
 {% endblock %}
-  <script>layout_change('light');</script>
- <!-- [Page Specific JS] start -->
-  <script src="/static/assets/js/plugins/apexcharts.min.js"></script>
-  <script src="/static/assets/js/pages/dashboard-default.js"></script>
-  <!-- [Page Specific JS] end -->
-  <!-- Required Js -->
-  <script src="/static/assets/js/plugins/popper.min.js"></script>
-  <script src="/static/assets/js/plugins/simplebar.min.js"></script>
-  <script src="/static/assets/js/plugins/bootstrap.min.js"></script>
-  <script src="/static/assets/js/fonts/custom-font.js"></script>
-  <script src="/static/assets/js/pcoded.js"></script>
-  <script src="/static/assets/js/plugins/feather.min.js"></script>
+{% load static %}
+   <script src="{% static 'assets/js/plugins/popper.min.js' %}"></script>
+  <script src="{% static 'assets/js/plugins/simplebar.min.js' %}"></script>
+  <script src="{% static 'assets/js/plugins/bootstrap.min.js' %}"></script>
+  <script src="{% static 'assets/js/fonts/custom-font.js' %}"></script>
+  <script src="{% static 'assets/js/pcoded.js' %}"></script>
+  <script src="{% static 'assets/js/plugins/feather.min.js' %}"></script>
+  </body>
