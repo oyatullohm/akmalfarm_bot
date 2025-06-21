@@ -4,7 +4,7 @@ from .ajax import toggle_status
 urlpatterns = [
     path('', index),
     path('login/', login_),
-    path('logout', logout_),
+    path('logout/', logout_),
     path('register/', register),
     path('telegram', telegram),
     path('add-doctor', add_doctor),

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- [Head] start -->
+{% load static %}
 
 <head>
   <title>Login</title>
@@ -13,19 +13,19 @@
   <meta name="author" content="CodedThemes"> -->
 
   <!-- [Favicon] icon -->
-  <!-- <link rel="icon" href="/static/assets/images/favicon.svg" type="image/x-icon"> [Google Font] Family -->
+  <!-- <link rel="icon" href="{%  static 'assets/images/favicon.svg" type="image/x-icon"> [Google Font] Family -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" id="main-font-link">
 <!-- [Tabler Icons] https://tablericons.com -->
-<link rel="stylesheet" href="/static/assets/fonts/tabler-icons.min.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/tabler-icons.min.css' %}" >
 <!-- [Feather Icons] https://feathericons.com -->
-<link rel="stylesheet" href="/static/assets/fonts/feather.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/feather.css' %}" >
 <!-- [Font Awesome Icons] https://fontawesome.com/icons -->
-<link rel="stylesheet" href="/static/assets/fonts/fontawesome.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/fontawesome.css' %}" >
 <!-- [Material Icons] https://fonts.google.com/icons -->
-<link rel="stylesheet" href="/static/assets/fonts/material.css" >
+<link rel="stylesheet" href="{% static 'assets/fonts/material.css' %}" >
 <!-- [Template CSS Files] -->
-<link rel="stylesheet" href="/static/assets/css/style.css" id="main-style-link" >
-<link rel="stylesheet" href="/static/assets/css/style-preset.css" >
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}" id="main-style-link" >
+<link rel="stylesheet" href="{% static 'assets/css/style-preset.css' %}" >
 
 </head>
 <!-- [Head] end -->
@@ -44,7 +44,7 @@
     <div class="auth-wrapper v3">
       <div class="auth-form">
         <div class="auth-header">
-          <a href="#"><img src="/static/assets/images/logo-dark.svg" alt="img"></a>
+          <a href="#"><img src="{%  static 'assets/images/logo-dark.svg' %}" alt="img"></a>
         </div>
       
        
@@ -87,12 +87,12 @@
   </div>
   <!-- [ Main Content ] end -->
   <!-- Required Js -->
-  <script src="/static/assets/js/plugins/popper.min.js"></script>
-  <script src="/static/assets/js/plugins/simplebar.min.js"></script>
-  <script src="/static/assets/js/plugins/bootstrap.min.js"></script>
-  <script src="/static/assets/js/fonts/custom-font.js"></script>
-  <script src="/static/assets/js/pcoded.js"></script>
-  <script src="/static/assets/js/plugins/feather.min.js"></script>
+  <script src="{% static 'assets/js/plugins/popper.min.js' %}"></script>
+  <script src="{% static 'assets/js/plugins/simplebar.min.js' %}"></script>
+  <script src="{% static 'assets/js/plugins/bootstrap.min.js' %}"></script>
+  <script src="{% static 'assets/js/fonts/custom-font.js' %}"></script>
+  <script src="{% static 'assets/js/pcoded.js' %}"></script>
+  <script src="{% static 'assets/js/plugins/feather.min.js' %}"></script>
 
   
   
