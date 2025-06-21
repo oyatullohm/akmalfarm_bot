@@ -167,6 +167,16 @@ async def process_user_text(message: Message, state: FSMContext, bot: Bot):
         sent_msg = await bot.send_message(
             chat_id=GROUP_ID,
             text=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
+            reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✉️ Javob yozilmagan",
+                        callback_data=f"reply_to_"
+                    )
+                ]
+            ]
+        ),
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id
@@ -187,6 +197,15 @@ async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
             chat_id=GROUP_ID,
             photo=photo.file_id,
             caption=f"{caption}\n\n👤 Yuboruvchi: {user_profile}",
+            reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✉️ Javob yozilmagan",
+                        callback_data=f"reply_to_"
+                    )
+                ]
+            ]),
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id

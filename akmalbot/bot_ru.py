@@ -220,6 +220,15 @@ async def process_user_text_ru(message: Message, state: FSMContext, bot: Bot):
         sent_msg = await bot.send_message(
             chat_id=GROUP_ID,
             text=f"{text}\n\n👤 Отправитель: {user_profile}",
+            reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✉️ Ответ не был написан.",
+                        callback_data=f"reply_to_"
+                    )
+                ]
+            ]),
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id
@@ -241,6 +250,15 @@ async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
             chat_id=GROUP_ID,
             photo=photo.file_id,
             caption=f"{caption}\n\n👤 Отправитель: {user_profile}",
+            reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✉️ Ответ не был написан.",
+                        callback_data=f"reply_to_"
+                    )
+                ]
+            ]),
             parse_mode="HTML"
         )
         message_user_map[sent_msg.message_id] = user.id
@@ -249,14 +267,25 @@ async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
         await message.answer(f"❌ Ошибка: {str(e)}")
 
 
-
-
+@router.callback_query(F.data.startswith("reply_to_"))
+async def remove_reply_button(callback: CallbackQuery):
+    # Tugmani olib tashlash
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception as e:
+        pass
+    
+    # Xohlovchi javob yozishi mumkin — xabar chiqarmasa ham bo‘ladi
+    await callback.answer("✉️ Tugma olib tashlandi.", show_alert=False)
 
 @router.message(F.reply_to_message)
 async def handle_reply(message: Message, bot: Bot):
     original_msg_id = message.reply_to_message.message_id
     user_id = message_user_map.get(original_msg_id)
-
+    try:
+        await message.reply_to_message.edit_reply_markup(reply_markup=None)
+    except Exception as e:
+        print(f"❗ Tugmani o‘chirishda xatolik: {e}")
     if not user_id:
         await message.reply(texts["user_not_found"]["ru"])
         return
@@ -280,6 +309,7 @@ async def handle_reply(message: Message, bot: Bot):
                 chat_id=user_id,
                 photo=photo,
                 caption=caption,
+                reply_markup=ReplyKeyboardRemove(),
                 parse_mode="HTML"
             )
 
@@ -287,6 +317,7 @@ async def handle_reply(message: Message, bot: Bot):
             text_to_send = message.text if message.text else ""
             await bot.send_message(
                 chat_id=user_id,
+                reply_markup=ReplyKeyboardRemove(),
                 text=f"{texts['response_prefix'][user_lang]}{text_to_send}"
             )
         else:
