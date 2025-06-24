@@ -155,11 +155,14 @@ async def admin_start(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AdminPost.waiting_for_text)
     await callback.answer()
 
-# Har safar matn yuborilsa, admin guruhga jo‘natamiz
 @router.message(AdminPost.waiting_for_text, F.text)
 async def process_user_text(message: Message, state: FSMContext, bot: Bot):
     user = message.from_user
-    username = f"@{user.username}" if user.username else user.full_name
+    username = (
+    f"@{user.username}" if user.username 
+    else user.full_name if user.full_name 
+    else f"ID:{user.id}"
+    )
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
     text = message.text
 
@@ -187,7 +190,12 @@ async def process_user_text(message: Message, state: FSMContext, bot: Bot):
 @router.message(AdminPost.waiting_for_text, F.photo)
 async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
     user = message.from_user
-    username = f"@{user.username}" if user.username else user.full_name
+    username = (
+    f"@{user.username}" if user.username 
+    else user.full_name if user.full_name 
+    else f"ID:{user.id}"
+    )
+
     user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
     photo = message.photo[-1]
     caption = message.caption or "🖼 Rasm"
