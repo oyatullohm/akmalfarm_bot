@@ -19,7 +19,8 @@ class Doctor(models.Model):
     
 class TelegramUser(models.Model):
     
-    user_id = models.BigIntegerField(unique=True) 
+    user_id = models.BigIntegerField(unique=True)
+    phone_number = models.CharField(max_length=13, null=True, blank=True) 
     first_name = models.CharField(max_length=64) 
     last_name = models.CharField(max_length=64, blank=True, null=True)  
     username = models.CharField(max_length=32, blank=True, null=True)

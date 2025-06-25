@@ -14,6 +14,7 @@ async def send_main_menu_ru(message: Message, state: FSMContext, lang: str = 'uz
     )
     await state.set_state(BotStates.menu_select_ru)
 
+
 async def get_pharmacies():
     global pharmacies_cache
     if pharmacies_cache is None:
@@ -21,6 +22,7 @@ async def get_pharmacies():
         response = requests.get("https://akmalfarm.uz/api/apteka/")
         pharmacies_cache = response.json()
     return pharmacies_cache
+
 
 @router.message(Command("cancel"))
 async def cancel_feedback(message: Message, state: FSMContext):
@@ -92,7 +94,6 @@ async def dori_info_ru(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("📝 Пожалуйста, введите название лекарства:")
     await state.set_state(BotStates.dori_info_search_ru)
     await callback.answer()
-
 
 
 @router.message(BotStates.dori_info_search_ru)
@@ -197,6 +198,7 @@ async def handle_search_actions_ru(callback: CallbackQuery, state: FSMContext):
     
     await callback.answer()
 
+
 @router.callback_query(lambda c: c.data == "aloqa_ru")
 async def admin_start_ru(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
@@ -206,7 +208,6 @@ async def admin_start_ru(callback: CallbackQuery, state: FSMContext):
     )
     await state.set_state(AdminPost.waiting_for_text_ru)
     await callback.answer()
-
 
 
 @router.message(AdminPost.waiting_for_text_ru, F.text)
@@ -288,7 +289,8 @@ async def remove_reply_button(callback: CallbackQuery):
     # Xohlovchi javob yozishi mumkin — xabar chiqarmasa ham bo‘ladi
     await callback.answer("✉️ Tugma olib tashlandi.", show_alert=False)
 
-@router.message(F.reply_to_message)
+
+@router.message(F.reply_to_message & ~F.contact)
 async def handle_reply(message: Message, bot: Bot):
     original_msg_id = message.reply_to_message.message_id
     user_id = message_user_map.get(original_msg_id)
@@ -358,6 +360,7 @@ async def diagnostika_ru(callback: CallbackQuery, state: FSMContext):
                                      Скоро здесь появится список диагностических услуг.
                                      """)
         await callback.answer()
+
 
 @router.callback_query(lambda c: c.data == "maslahat_ru")
 async def maslahat_ru(callback: CallbackQuery, state: FSMContext):

@@ -2,7 +2,6 @@ from button import *
 from bot_ru import *
 
 
-
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     text = (
@@ -13,7 +12,7 @@ async def command_start_handler(message: Message) -> None:
     "🇷🇺 Привет! Я бот поддержки *AkmalFarmMedical*.\n"
     "Хочу вам помочь!\n"
     "*На каком языке вам отвечать?*"
-)
+    )
     await message.answer(text, reply_markup=inline_uz_ru, parse_mode="Markdown")
 
 
@@ -29,13 +28,12 @@ async def send_main_menu(message: Message, state: FSMContext, lang: str = 'uz'):
     )
     await state.set_state(BotStates.menu_select)
 
+
 @router.callback_query(lambda c: c.data in ["lang_uz", "lang_ru"])
 async def handle_language_selection(callback: CallbackQuery, state: FSMContext):
-
     lang = callback.data.split("_")[1]
-    
-   
-    await sync_to_async(TelegramUser.objects.update_or_create)(
+
+    user, created = await sync_to_async(TelegramUser.objects.update_or_create)(
         user_id=callback.from_user.id,
         defaults={
             'first_name': callback.from_user.first_name,
@@ -44,9 +42,52 @@ async def handle_language_selection(callback: CallbackQuery, state: FSMContext):
             'language': lang
         }
     )
-    
-    await send_main_menu(callback.message, state, lang)
-    await callback.answer()
+    if not user.phone_number:
+        contact_keyboard = ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(
+                    text="📱 Raqam yuborish" if lang == 'uz' else "📱 Отправить номер",
+                    request_contact=True
+                )]
+            ],
+            resize_keyboard=True,
+            one_time_keyboard=True
+        )
+
+        await callback.message.answer(
+            "📲 Iltimos, telefon raqamingizni yuboring:" if lang == 'uz' else
+            "📲 Пожалуйста, отправьте свой номер телефона:",
+            reply_markup=contact_keyboard
+        )
+
+        await callback.answer()
+    else:
+        await send_main_menu(callback.message, state, user.language)
+        await callback.answer()
+
+
+@router.message(F.contact)
+async def handle_contact(message: Message, state: FSMContext):
+    phone_number = message.contact.phone_number
+
+    await sync_to_async(TelegramUser.objects.update_or_create)(
+        user_id=message.from_user.id,
+        defaults={'phone_number': phone_number}
+    )
+
+    try:
+        user = await sync_to_async(TelegramUser.objects.get)(user_id=message.from_user.id)
+        lang = user.language if user.language in ['uz', 'ru'] else 'uz'
+
+        await message.answer(
+            "✅ Raqamingiz saqlandi!" if lang == 'uz' else "✅ Ваш номер сохранён!",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        await send_main_menu(message, state, lang)
+
+    except TelegramUser.DoesNotExist:
+        await message.answer("❗ Foydalanuvchi topilmadi.")
+
 
 @dp.message(Command("menu"))
 async def handle_menu_command(message: Message, state: FSMContext):
@@ -58,9 +99,6 @@ async def handle_menu_command(message: Message, state: FSMContext):
         lang = 'uz'  
     
     await send_main_menu(message, state, lang)
-
-
-
 
 
 @router.callback_query(lambda c: c.data.startswith(("dorihona_uz", "page_")))
@@ -106,6 +144,7 @@ async def send_pharmacies_list(callback: CallbackQuery):
     
     await callback.answer()
 
+
 @router.callback_query(lambda c: c.data and c.data.startswith("loc_"))
 async def show_location(callback: CallbackQuery):
     pharmacy_id = int(callback.data.split("_")[1])
@@ -126,7 +165,7 @@ async def show_location(callback: CallbackQuery):
         # f"⏰ {shift}\n"
         f"📞 {phone_number}",
         parse_mode="HTML"
-)
+        )
 
     await callback.message.answer_location(latitude=lat, longitude=lon)
     await callback.answer()
@@ -138,13 +177,13 @@ async def dori_info(callback:CallbackQuery,  state: FSMContext):
     await state.set_state(BotStates.dori_info_search) 
     await callback.answer()
 
+
 @router.message(Command("cancel"))
 async def cancel_feedback(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("❌ Aloqa tugatildi. Qayta yozish uchun  dan Retsept yuklash tallang.")
 
 
-# Aloqa rejimini yoqamiz
 @router.callback_query(lambda c: c.data == "aloqa")
 async def admin_start(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
@@ -154,6 +193,7 @@ async def admin_start(callback: CallbackQuery, state: FSMContext):
     )
     await state.set_state(AdminPost.waiting_for_text)
     await callback.answer()
+
 
 @router.message(AdminPost.waiting_for_text, F.text)
 async def process_user_text(message: Message, state: FSMContext, bot: Bot):
@@ -186,6 +226,7 @@ async def process_user_text(message: Message, state: FSMContext, bot: Bot):
         await message.answer("✅ Xabaringiz yuborildi. Mutaxassis javobini kuting.")
     except Exception as e:
         await message.answer(f"❌ Xatolik: {str(e)}")
+
 
 @router.message(AdminPost.waiting_for_text, F.photo)
 async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
@@ -222,13 +263,13 @@ async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
         await message.answer(f"❌ Xatolik: {str(e)}")
 
 
-
 @router.message(Command("groupid", "id"))
 async def get_group_id(message: Message):
     if message.chat.type in ["group", "supergroup"]:
         await message.reply(f"Guruh ID: <code>{message.chat.id}</code>", parse_mode="HTML")
     else:
         await message.reply("Bu buyruq faqat guruhlarda ishlaydi")
+
 
 @router.message(BotStates.dori_info_search)
 async def search_dori(message: types.Message, state: FSMContext):
@@ -311,6 +352,7 @@ async def search_dori(message: types.Message, state: FSMContext):
             )
         await state.set_state(BotStates.after_search_choice)
 
+
 @router.callback_query(BotStates.after_search_choice, lambda c: c.data in ["search_again", "main_menu", "close_search"])
 async def handle_search_actions(callback: CallbackQuery, state: FSMContext):
     action = callback.data
@@ -373,8 +415,7 @@ async def maslahat(callback:CallbackQuery,  state: FSMContext):
                                       """)
         await callback.answer()
 
-
-    
+   
 @router.callback_query(lambda c:c.data == "other")
 async def other(callback:CallbackQuery):
     await callback.message.answer(
@@ -384,13 +425,10 @@ async def other(callback:CallbackQuery):
         "📱 Yoki qisqa raqam: <b>1080</b>"
     ),
     parse_mode="HTML"
-)
+        )
     await callback.answer()
+
  
-
-
-
-    
 async def set_commands(bot: Bot):
     commands = [
         BotCommand(command="start", description="/start"),
@@ -404,7 +442,6 @@ async def main() -> None:
     await set_commands(bot)
     await dp.start_polling(bot)
     
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
