@@ -5,3 +5,4 @@ from .models import  *
 
 admin.site.register(Doctor)
 admin.site.register(TelegramUser)
+admin.site.register(Message)

@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import *
-from .ajax import toggle_status
+from .ajax import *
 urlpatterns = [
     path('', index),
     path('login/', login_),
@@ -9,4 +9,9 @@ urlpatterns = [
     path('telegram', telegram),
     path('add-doctor', add_doctor),
     path('toggle-status/<int:user_id>/', toggle_status, name='toggle_status'),
+    
+    path('load_messages/<int:user_id>/', load_messages, name='load_messages'),
+    path("chat/<str:room_name>/", room, name="room"),
+    
+    
 ]

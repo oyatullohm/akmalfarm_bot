@@ -2,6 +2,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import CallbackQuery, BotCommand
 from aiogram.fsm.state import StatesGroup, State
+from channels.layers import get_channel_layer
 from aiogram.fsm.context import FSMContext
 from aiogram import Bot, Dispatcher, html
 from aiogram.filters import CommandStart
@@ -16,11 +17,11 @@ import requests
 import asyncio
 import logging
 import environ
+import aiohttp
 import django
 import sys
 import re
 import os 
-
 
 env = environ.Env()
 environ.Env.read_env()
@@ -29,12 +30,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Admin.settings') 
 django.setup()
+from django.core.files.base import ContentFile
+from django.utils.timezone import now
+from django.utils import timezone
 from main.models import *
-
+from django.core.files.base import ContentFile
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
     
-# GROUP_ID = -1002524424597 
-GROUP_ID = -4724451433
+GROUP_ID = -1002524424597 
+# GROUP_ID = -4724451433
 
 TOKEN  = env.str('TOKEN')
 
@@ -118,3 +122,18 @@ def split_text(text, max_length=3000):
         text = text[split_pos:].lstrip()
     
     return parts
+
+
+@sync_to_async
+def save_photo_message(user_id, caption, file_data):
+
+    telegram_user = TelegramUser.objects.get(user_id=user_id)
+    msg = Message(
+        telegramuser=telegram_user,
+        room_name=user_id,
+        content=caption,
+        is_read=True,
+    )
+    file_name = f"chat_{user_id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.jpg"
+    msg.image.save(file_name, ContentFile(file_data.read()), save=True)
+    return msg

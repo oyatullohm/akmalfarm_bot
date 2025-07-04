@@ -8,3 +8,4 @@ def is_login(fun):
             return fun(request, *args, **kwargs)
         return redirect( '/login/')
     return wrapper
+

@@ -1,0 +1,490 @@
+
+<!DOCTYPE html><html class=''>
+  {% load static %}
+<head><script src='//production-assets.codepen.io/assets/editor/live/console_runner-079c09a0e3b9ff743e39ee2d5637b9216b3545af0de366d4b9aad9dc87e26bfd.js'></script><script src='//production-assets.codepen.io/assets/editor/live/events_runner-73716630c22bbc8cff4bd0f07b135f00a0bdc5d14629260c3ec49e5606f98fdd.js'></script><script src='//production-assets.codepen.io/assets/editor/live/css_live_reload_init-2c0dc5167d60a5af3ee189d570b1835129687ea2a61bee3513dee3a50c115a77.js'></script><meta charset='UTF-8'><meta name="robots" content="noindex"><link rel="shortcut icon" type="image/x-icon" href="//production-assets.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" /><link rel="mask-icon" type="" href="//production-assets.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg" color="#111" /><link rel="canonical" href="https://codepen.io/emilcarlsson/pen/ZOQZaV?limit=all&page=74&q=contact+" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300' rel='stylesheet' type='text/css'>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+<script src="https://use.typekit.net/hoy3lrg.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+<link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css'><link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css'>
+<link rel="stylesheet" href="{% static 'assets/css/index.css' %}">
+</head>
+<body>
+
+
+<div id="frame">
+	<div id="sidepanel">
+		<div id="profile">
+			<div class="wrap">
+				<img id="profile-img" src="{% static 'photo_2025-07-02_07-00-43.jpg' %}" class="online" alt="" />
+				<p>{{ request.user}}</p>
+
+			</div>
+		</div>
+		<div id="contacts">
+			<ul>
+          {% for user in users %}
+          <li class="contact" id="telegramuser-{{ user.user_id }}">
+            <div class="wrap" onclick="startChat({{ user.user_id }})">
+                {% if user.image%}
+              <img src="{{ user.image.url }}" alt="{{ user.username }}">
+              {% else %}
+              <img src="{% static 'photo_2025-07-02_07-00-43.jpg' %}" alt="{{ user.username }}">
+
+              {% endif %}
+              <div class="meta">
+                <p class="name">{{ user.username }}</p>
+                <p class="badge" style="background-color: rgb(206, 212, 210);" id="unread-count-{{ user.user_id }}">{{ user.unread_count }}</p>
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+
+			</ul>
+		</div>
+	</div>
+	<div class="content" >
+		<div class="contact-profile">
+			<img id="telegramuserimg" src="{% static 'photo_2025-07-02_07-00-43.jpg' %}" alt="" />
+			<p id="telegramusername"> AkmalFarm</p>
+		</div>
+<div class="container my-4">
+  <div class="border rounded shadow p-3 bg-light">
+    
+    <div id="room-name" data-room-name="{{ room_name }}" class="d-none"></div>
+
+    <div id="chat-log" class="border rounded  p-2 mb-4" style="height: 400px; overflow-y: auto; background-color: rgb(147, 201, 145);">
+      <ul id="messages-list" class="list-unstyled whitem-0 p-0">
+       {% for message in messages %}
+<li class="d-flex mb-3
+    {% if message.user %}
+        justify-content-end
+    {% else %}
+        justify-content-start
+    {% endif %}
+">
+    <div class="message-content p-2 rounded bg-white text-dark position-relative" 
+         style="max-width: 70%; min-width: 100px; word-wrap: break-word; padding-bottom: 25px;">
+        {% if message.content %}
+            <p class="mb-1">{{ message.content }}</p>
+        {% endif %}
+
+        {% if message.image %}
+            <img src="{{ message.image.url }}" class="mb-1" style="max-width: 100%; border-radius: 6px;">
+        {% endif %}
+
+        {% if message.voice %}
+            <audio controls preload="auto" style="width: 100%;">
+                <source src="{{ message.voice.url }}" type="audio/ogg">
+                Sizning brauzeringiz audio tagini qo'llab-quvvatlamaydi.
+            </audio>
+        {% endif %}
+
+        <small class="text-muted position-absolute" style="bottom: 5px; right: 10px; font-size: 0.7rem;">
+            {{ message.timestamp|time:"H:i" }}
+        </small>
+    </div>
+</li>
+{% endfor %}
+
+      </ul>
+    </div>
+
+   <div class="d-flex">
+  <input type="text" id="chat-message-input" class="form-control form-control-lg" placeholder="Xabaringizni yozing..." autocomplete="off">
+ <input type="file" id="image-upload" accept="image/*" style="display: none;">
+  <button id="image-upload-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2"  style="width: 44px; height: 44px;">
+    <img src="{% static 'assets/images/icons8.png' %}" width="24" alt="">
+  </button>
+  <!-- Mikrofonga yozish tugmasi -->
+<button id="voice-record-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2" style="width: 44px; height: 44px;">🎙️</button>
+
+  <button id="chat-message-submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2" style="width: 44px; height: 44px;">
+    <img src="{% static 'assets/images/yubor.png' %}" width="24" alt="">
+  </button>
+</div>
+
+
+  </div>
+</div>
+
+
+<script>
+
+
+
+let currentChatSocket = null;
+let unreadInterval = null;
+// Chatni boshlash
+function startChat(user_id) {
+    if (currentChatSocket) {
+        currentChatSocket.close();
+    }
+
+
+    fetch(`/load_messages/${user_id}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('telegramusername').textContent = data.user_info.username;
+            document.getElementById('telegramuserimg').src = data.user_info.img || 'default_avatar.png';
+
+            const list = document.getElementById('messages-list');
+            list.innerHTML = '';
+
+            data.messages.forEach(msg => {
+                // console.log("Xabar:", msg);
+                //console.log("Timestamp:", msg.timestamp);
+                addMessageElement(
+                    msg.content,
+                    msg.timestamp,
+                    msg.user_id,
+                    msg.image_url,
+                    msg.voice
+                    
+                );
+            });
+            
+            scrollToBottom(true);
+            updateUnreadCount(0, user_id);
+            setupWebSocket(user_id);
+
+            setTimeout(() => {
+                if (currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
+                    currentChatSocket.send(JSON.stringify({ command: 'mark_read' }));
+                }
+            }, 500);
+        })
+        .catch(error => {
+            console.error("Xabarlarni yuklashda xatolik:", error);
+        });
+}
+// WebSocket setup
+function setupWebSocket(user_id) {
+    currentChatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${user_id}/`);
+
+    currentChatSocket.onopen = function() {
+        console.log("WebSocket ochildi");
+
+        if (unreadInterval) clearInterval(unreadInterval);
+        unreadInterval = setInterval(() => {
+            if (currentChatSocket.readyState === WebSocket.OPEN) {
+                currentChatSocket.send(JSON.stringify({ command: 'get_unread' }));
+            }
+        }, 5000);
+    };
+
+    currentChatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'message') {
+            addMessageElement(
+                data.content,
+                data.timestamp,
+                data.user_id,
+                data.image,
+                null
+            );
+            scrollToBottom();
+        }
+
+        if (data.type === 'voice') {
+            addMessageElement(
+                null,
+                data.timestamp,
+                data.user_id,
+                null,
+                data.voice_url
+            );
+            scrollToBottom();
+        }
+
+        if (data.type === 'notify') {
+            updateUnreadBadges(data.unread_counts);
+        }
+
+        if (data.type === 'bulk_unread_update') {
+            updateUnreadBadges(data.counts);
+        }
+    };
+
+    currentChatSocket.onclose = function() {
+        console.log("WebSocket yopildi");
+        if (unreadInterval) clearInterval(unreadInterval);
+    };
+}
+
+
+// Xabar element qo‘shish
+function addMessageElement(content, timestamp, user_id, image_url = null, voice_url = null) {
+    const list = document.getElementById('messages-list');
+    const li = document.createElement('li');
+
+    // O'ng yoki chap bo'lishini aniqlash
+    const wrapperClass = user_id ? 'justify-content-end' : 'justify-content-start';
+    li.className = `d-flex ${wrapperClass} mb-2`;
+
+    let html = `<div class="p-2 rounded bg-light" style="max-width: 75%;">`;
+
+    if (image_url) {
+        html += `<img src="${image_url}" class="img-fluid mb-1">`;
+    }
+
+    if (content) {
+        html += `<p class="mb-1">${content}</p>`;
+    }
+
+    if (voice_url) {
+        html += `
+            <audio controls style="width:100%;">
+                <source src="${voice_url}" type="audio/ogg">
+                Brauzer audio tagni qo‘llab-quvvatlamaydi.
+            </audio>`;
+    }
+
+    html += `<small class="text-muted">${new Date(timestamp).toLocaleTimeString()}</small>`;
+    html += `</div>`;
+
+    li.innerHTML = html;
+    list.appendChild(li);
+}
+
+
+
+
+// Unread badge yangilash
+function updateUnreadBadges(counts) {
+    if (!Array.isArray(counts)) return;
+
+    counts.forEach(item => {
+        const badge = document.getElementById(`unread-count-${item.user_id}`);
+        if (badge) {
+            badge.textContent = item.unread_count > 0 ? item.unread_count : '';
+        } else {
+            const contactsList = document.getElementById('contacts-list');
+            if (contactsList) {
+                const li = document.createElement('li');
+                li.id = `telegramuser-${item.user_id}`;
+                li.innerHTML = `
+                    <div onclick="startChat(${item.user_id})">
+                        <img src="${item.image || 'default_avatar.png'}" width="40">
+                        <span>${item.username}</span>
+                        <span class="badge bg-danger" id="unread-count-${item.user_id}">${item.unread_count}</span>
+                    </div>`;
+                contactsList.appendChild(li);
+            }
+        }
+    });
+}
+
+// Scroll pastga tushirish
+function scrollToBottom(force = false) {
+    const container = document.getElementById('chat-log');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+
+// Voice yozib yuborish
+let mediaRecorder;
+let audioChunks = [];
+
+document.getElementById('voice-record-btn').addEventListener('click', async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Brauzer mikrofonni qo'llab-quvvatlamaydi.");
+        return;
+    }
+
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(audioChunks, { type: 'audio/ogg' });
+                const reader = new FileReader();
+
+                reader.onloadend = () => {
+                    const base64Voice = reader.result;
+                    if (currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
+                        currentChatSocket.send(JSON.stringify({ voice: base64Voice }));
+                    }
+                };
+
+                reader.readAsDataURL(blob);
+            };
+
+            mediaRecorder.start();
+            document.getElementById('voice-record-btn').textContent = "⏹️";
+        } catch (error) {
+            console.error(error);
+            alert("Mikrofonga ruxsat berilmadi yoki xatolik yuz berdi.");
+        }
+    } else if (mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        document.getElementById('voice-record-btn').textContent = "🎙️";
+    }
+});
+
+// Xabar yuborish
+function sendMessage() {
+    const input = document.getElementById('chat-message-input');
+    const msg = input.value.trim();
+
+    if (msg && currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
+        currentChatSocket.send(JSON.stringify({ message: msg }));
+        input.value = '';
+    }
+}
+
+// Rasm yuborish
+document.getElementById('image-upload-btn').addEventListener('click', () => {
+    document.getElementById('image-upload').click();
+});
+
+document.getElementById('image-upload').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert("Rasm 5MB dan katta bo'lmasligi kerak!");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        if (currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
+            currentChatSocket.send(JSON.stringify({ image: event.target.result }));
+        }
+    };
+    reader.readAsDataURL(file);
+});
+
+// Unread count yangilash
+function updateUnreadCount(count, user_id, username = '', image_url = '') {
+    let badge = document.getElementById(`unread-count-${user_id}`);
+    let contactItem = document.getElementById(`telegramuser-${user_id}`);
+    let contactsList = document.getElementById('contacts-list');
+
+    if (!contactItem && count > 0 && contactsList) {
+        contactItem = document.createElement('li');
+        contactItem.className = 'contact';
+        contactItem.id = `telegramuser-${user_id}`;
+
+        contactItem.innerHTML = `
+          <div class="wrap" onclick="startChat(${user_id})">
+            <img src="${image_url || 'default_avatar.png'}" alt="${username}">
+            <div class="meta">
+              <p class="name">${username}</p>
+              <p class="badge bg-danger" id="unread-count-${user_id}">${count}</p>
+            </div>
+          </div>
+        `;
+        contactsList.insertBefore(contactItem, contactsList.firstChild);
+        return;
+    }
+
+    if (badge) {
+        badge.textContent = count > 0 ? count : '';
+    }
+
+    if (count > 0 && contactItem && contactsList) {
+        contactsList.removeChild(contactItem);
+        contactsList.insertBefore(contactItem, contactsList.firstChild);
+    }
+}
+
+// Scroll pastga tushirish
+function scrollToBottom(force = false) {
+    const container = document.getElementById('chat-log');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+// Enter bilan yuborish
+document.getElementById('chat-message-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+document.getElementById('chat-message-submit').addEventListener('click', sendMessage);
+
+
+// Dastlab birinchi chatni avtomatik ochish
+// document.addEventListener('DOMContentLoaded', function() {
+//     {% if users.0 %}
+//     startChat({{ users.0.user_id }});
+//     {% endif %}
+// });
+
+
+
+$(".messages").animate({ scrollTop: $(document).height() }, "fast");
+
+$("#profile-img").click(function() {
+	$("#status-options").toggleClass("active");
+});
+
+$(".expand-button").click(function() {
+  $("#profile").toggleClass("expanded");
+	$("#contacts").toggleClass("expanded");
+});
+
+$("#status-options ul li").click(function() {
+	$("#profile-img").removeClass();
+	$("#status-online").removeClass("active");
+	$("#status-away").removeClass("active");
+	$("#status-busy").removeClass("active");
+	$("#status-offline").removeClass("active");
+	$(this).addClass("active");
+	
+	if($("#status-online").hasClass("active")) {
+		$("#profile-img").addClass("online");
+	} else if ($("#status-away").hasClass("active")) {
+		$("#profile-img").addClass("away");
+	} else if ($("#status-busy").hasClass("active")) {
+		$("#profile-img").addClass("busy");
+	} else if ($("#status-offline").hasClass("active")) {
+		$("#profile-img").addClass("offline");
+	} else {
+		$("#profile-img").removeClass();
+	};
+	
+	$("#status-options").removeClass("active");
+});
+
+function newMessage() {
+	message = $(".message-input input").val();
+	if($.trim(message) == '') {
+		return false;
+	}
+	$('<li class="sent"><img src="http://emilcarlsson.se/assets/mikeross.png" alt="" /><p>' + message + '</p></li>').appendTo($('.messages ul'));
+	$('.message-input input').val(null);
+	$('.contact.active .preview').html('<span>You: </span>' + message);
+	$(".messages").animate({ scrollTop: $(document).height() }, "fast");
+};
+
+$('.submit').click(function() {
+  newMessage();
+});
+
+$(window).on('keydown', function(e) {
+  if (e.which == 13) {
+    newMessage();
+    return false;
+  }
+});
+//# sourceURL=pen.js
+</script>
+</body></html>

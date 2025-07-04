@@ -29,4 +29,3 @@ builder_text_ru.row(InlineKeyboardButton(text="❓ Другой вопрос", c
 
 inline_ru_text = builder_text_ru.as_markup()
 
-

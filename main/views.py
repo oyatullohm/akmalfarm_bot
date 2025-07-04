@@ -1,14 +1,16 @@
 
+
 from django.contrib.auth import login, logout
 from django.shortcuts import render ,redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User 
 from django.utils.timezone import localtime
 from datetime import datetime, timedelta
+from django.db.models import Count, Max
 from django.utils.timezone import now
-from django.db.models import Count
 from .decorators import is_login
 from .models import *
+
 
 def register(request):
     user = None
@@ -117,3 +119,20 @@ def telegram(request):
     page_obj = paginator.get_page(page_number)
     
     return render(request, 'telegram.html', {'page_obj':page_obj})
+
+
+
+def room(request, room_name):
+    messages = Message.objects.filter(room_name=str(room_name))
+    users = TelegramUser.objects.annotate(
+    last_message_time=Max('telegrams__timestamp')
+        ).order_by('-last_message_time')
+
+
+    return render(request, "chat/room.html", {
+        "room_name": room_name,
+        "messages":messages,
+        "users":users
+        
+        })
+    
