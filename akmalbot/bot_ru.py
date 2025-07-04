@@ -294,10 +294,12 @@ async def remove_reply_button(callback: CallbackQuery):
 async def handle_reply(message: Message, bot: Bot):
     original_msg_id = message.reply_to_message.message_id
     user_id = message_user_map.get(original_msg_id)
+
     try:
         await message.reply_to_message.edit_reply_markup(reply_markup=None)
     except Exception as e:
         print(f"❗ Tugmani o‘chirishda xatolik: {e}")
+
     if not user_id:
         await message.reply(texts["user_not_found"]["ru"])
         return
@@ -313,7 +315,6 @@ async def handle_reply(message: Message, bot: Bot):
         if message.photo:
             photo = message.photo[-1].file_id
             caption = message.caption if message.caption else ""
-            # Agar caption bo‘sh bo‘lsa va text bor bo‘lsa, uni captionga qo‘shamiz (Telegram limitiga e'tibor bering)
             if caption == "" and message.text:
                 caption = message.text
 
@@ -325,18 +326,37 @@ async def handle_reply(message: Message, bot: Bot):
                 parse_mode="HTML"
             )
 
+        elif message.sticker:
+            sticker_id = message.sticker.file_id
+            await bot.send_sticker(
+                chat_id=user_id,
+                sticker=sticker_id,
+                reply_markup=ReplyKeyboardRemove()
+            )
+
+        elif message.voice:
+            voice_id = message.voice.file_id
+            await bot.send_voice(
+                chat_id=user_id,
+                voice=voice_id,
+                caption=message.caption or None,
+                reply_markup=ReplyKeyboardRemove()
+            )
+
         elif message.text:
-            text_to_send = message.text if message.text else ""
+            text_to_send = message.text
             await bot.send_message(
                 chat_id=user_id,
-                reply_markup=ReplyKeyboardRemove(),
-                text=f"{texts['response_prefix'][user_lang]}{text_to_send}"
+                text=f"{texts['response_prefix'][user_lang]}{text_to_send}",
+                reply_markup=ReplyKeyboardRemove()
             )
+
         else:
             await message.reply(texts["send_text_or_photo"][user_lang])
             return
 
         await message.reply(texts["response_sent"][user_lang])
+
     except Exception as e:
         await message.reply(f"❌ {str(e)}")
 
