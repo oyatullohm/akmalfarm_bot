@@ -42,7 +42,8 @@ GROUP_ID = -1002524424597
 # GROUP_ID = -4724451433
 
 TOKEN  = env.str('TOKEN')
-
+# systemctl restart  akmalbot.service
+# sudo systemctl restart gunicorn_bot
 dp = Dispatcher()
 router = Router()
 
