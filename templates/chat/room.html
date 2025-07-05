@@ -39,6 +39,7 @@
               </div>
             </div>
           </li>
+          <br>
           {% endfor %}
 
 			</ul>
@@ -356,6 +357,7 @@ document.getElementById('image-upload').addEventListener('change', (e) => {
     const reader = new FileReader();
     reader.onload = (event) => {
         if (currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
+            
             currentChatSocket.send(JSON.stringify({ image: event.target.result }));
         }
     };
@@ -415,11 +417,11 @@ document.getElementById('chat-message-submit').addEventListener('click', sendMes
 
 
 // Dastlab birinchi chatni avtomatik ochish
-// document.addEventListener('DOMContentLoaded', function() {
-//     {% if users.0 %}
-//     startChat({{ users.0.user_id }});
-//     {% endif %}
-// });
+document.addEventListener('DOMContentLoaded', function() {
+    {% if users.0 %}
+    startChat({{ users.0.user_id }});
+    {% endif %}
+});
 
 
 

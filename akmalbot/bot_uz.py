@@ -259,7 +259,7 @@ async def process_user_text(message: Message, state: FSMContext, bot: Bot):
         )
         
         await channel_layer.group_send(
-            "chat_global",
+            f"chat_{save_message.room_name}",
             {
                 "type": "external_message",
                 "message_id": saved_message.id,
@@ -321,7 +321,7 @@ async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
                     )
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
-            "chat_global",
+            f"chat_{save_message.room_name}",
             {
                 "type": "external_message",
                 "message_id": saved_message.id,
