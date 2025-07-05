@@ -289,36 +289,27 @@ async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
             ]),
             parse_mode="HTML"
         )
+
+        import aiohttp
+
         file = await bot.get_file(photo.file_id)
-        file_path = file.file_path
-        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
-
-        import aiohttp, aiofiles, os
-
-        save_dir = 'media/chat_images'
-        os.makedirs(save_dir, exist_ok=True)
-        file_name = os.path.basename(file_path)
-        save_path = os.path.join(save_dir, file_name)
+        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(file_url) as resp:
                 if resp.status == 200:
-                    f = await aiofiles.open(save_path, mode='wb')
-                    await f.write(await resp.read())
-                    await f.close()
-                
-        channel_layer = get_channel_layer()
-        telegram = await sync_to_async(TelegramUser.objects.get)(user_id=user.id)
-        from django.core.files import File
+                    image_data = await resp.read()
 
-        with open(save_path, 'rb') as f:
-            django_file = File(f)
-            saved_message = await sync_to_async(Message.objects.create)(
-                telegramuser=telegram,
-                room_name=user.id,
-                image=django_file,
-                is_read=True
-    )
+                    telegram_user = await sync_to_async(TelegramUser.objects.get)(user_id=user.id)
+                    django_file = ContentFile(image_data, name=f"{photo.file_unique_id}.jpg")
+
+                    saved_message = await sync_to_async(Message.objects.create)(
+                        telegramuser=telegram_user,
+                        room_name=telegram_user.user_id,
+                        image=django_file,
+                        is_read=True
+                    )
+        channel_layer = get_channel_layer()
         await channel_layer.group_send(
             "chat_global",
             {
@@ -328,14 +319,13 @@ async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
         )
         
         message_user_map[sent_msg.message_id] = user.id
-        await message.answer("✅ Ваше фото отправлено. Ожидайте ответ специалиста.")
+        await message.answer(f"✅ Ваше фото отправлено. Ожидайте ответ специалиста.{user.id}")
     except Exception as e:
         await message.answer(f"❌ Ошибка: {str(e)}")
 
 
 @router.callback_query(F.data.startswith("reply_to_"))
 async def remove_reply_button(callback: CallbackQuery):
-    # Tugmani olib tashlash
     try:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception as e:
@@ -347,6 +337,7 @@ async def remove_reply_button(callback: CallbackQuery):
 
 @router.message(F.reply_to_message & ~F.contact)
 async def handle_reply(message: Message, bot: Bot):
+
     original_msg_id = message.reply_to_message.message_id
     user_id = message_user_map.get(original_msg_id)
 
@@ -361,49 +352,33 @@ async def handle_reply(message: Message, bot: Bot):
 
     try:
         tg_user = await sync_to_async(TelegramUser.objects.get)(user_id=user_id)
+        dj_user = await sync_to_async(User.objects.last)()
         user_lang = tg_user.language if tg_user.language in ["uz", "ru"] else "uz"
     except TelegramUser.DoesNotExist:
         await message.reply(texts["user_not_found"]["ru"])
         return
 
+    saved_message = None
+
     try:
         if message.photo:
             photo = message.photo[-1].file_id
-            caption = message.caption if message.caption else ""
-            if caption == "" and message.text:
-                caption = message.text
-
-
-            file = await bot.get_file(photo.file_id)
-            file_path = file.file_path
-            file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
-
-            import aiohttp, aiofiles, os
-
-            save_dir = 'media/chat_images'
-            os.makedirs(save_dir, exist_ok=True)
-            file_name = os.path.basename(file_path)
-            save_path = os.path.join(save_dir, file_name)
+            file = await bot.get_file(photo)
+            file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(file_url) as resp:
                     if resp.status == 200:
-                        f = await aiofiles.open(save_path, mode='wb')
-                        await f.write(await resp.read())
-                        await f.close()
-                    
-    
-            from django.core.files import File
-
-            with open(save_path, 'rb') as f:
-                django_file = File(f)
-                sync_to_async(Message.objects.create)(
-                    telegramuser=tg_user,
-                    room_name=tg_user.id,
-                    image=django_file,
-                    is_read=True
-        )
-           
+                        content = await resp.read()
+                        saved_message = await sync_to_async(Message.objects.create)(
+                            telegramuser=tg_user,
+                            user=dj_user,
+                            room_name=tg_user.id,
+                            image=ContentFile(content, name=os.path.basename(file.file_path)),
+                            is_read=False
+                        )
+            
+            caption = message.caption or message.text or ""
             await bot.send_photo(
                 chat_id=user_id,
                 photo=photo,
@@ -411,36 +386,77 @@ async def handle_reply(message: Message, bot: Bot):
                 reply_markup=ReplyKeyboardRemove(),
                 parse_mode="HTML"
             )
-            
 
-        elif message.text:
-            text_to_send = message.text  
-            sync_to_async(Message.objects.create)(
-            telegramuser=tg_user,
-            room_name=tg_user.id,
-            content=text_to_send,
-            is_read=False 
-             )
-            await bot.send_message(
+        elif message.sticker:
+            sticker_id = message.sticker.file_id
+            await bot.send_sticker(
                 chat_id=user_id,
-                reply_markup=ReplyKeyboardRemove(),
-                text=f"{texts['response_prefix'][user_lang]}{text_to_send}"
+                sticker=sticker_id,
+                reply_markup=ReplyKeyboardRemove()
             )
 
+        elif message.voice:
+            voice_id = message.voice.file_id
+            file = await bot.get_file(voice_id)
+            file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
+
+            async with aiohttp.ClientSession() as session:
+                async with session.get(file_url) as resp:
+                    if resp.status == 200:
+                        content = await resp.read()
+                        saved_message = await sync_to_async(Message.objects.create)(
+                            telegramuser=tg_user,
+                            user=dj_user,
+                            room_name=tg_user.user_id,
+                            voice=ContentFile(content, name=f"voice_{timezone.now().strftime('%Y%m%d%H%M%S')}.ogg"),
+                            is_read=False
+                        )
+
+            await bot.send_voice(
+                chat_id=user_id,
+                voice=voice_id,
+                caption=message.caption or None,
+                reply_markup=ReplyKeyboardRemove()
+            )
+
+        elif message.text:
+            text_to_send = message.text
+            saved_message = await sync_to_async(Message.objects.create)(
+                telegramuser=tg_user,
+                room_name=tg_user.user_id,
+                user=dj_user,
+                content=text_to_send,
+                is_read=False
+            )
+            await bot.send_message(
+                chat_id=user_id,
+                text=f"{texts['response_prefix'][user_lang]}{text_to_send}",
+                reply_markup=ReplyKeyboardRemove()
+            )
         else:
             await message.reply(texts["send_text_or_photo"][user_lang])
             return
-        sync_to_async(
+
+        await sync_to_async(
             lambda: Message.objects.filter(
                 telegramuser__user_id=tg_user.user_id, is_read=True
             ).update(is_read=False)
         )()
 
+        if saved_message:
+            channel_layer = get_channel_layer()
+            await channel_layer.group_send(
+                "chat_global",
+                {
+                    "type": "external_message",
+                    "message_id": saved_message.id,
+                }
+            )
+
         await message.reply(texts["response_sent"][user_lang])
 
     except Exception as e:
         await message.reply(f"❌ {str(e)}")
-
 
 
 @router.callback_query(lambda c: c.data == "diagnostika_ru")

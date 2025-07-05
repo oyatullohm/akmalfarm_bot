@@ -300,36 +300,26 @@ async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
             ]),
             parse_mode="HTML"
         )
+        import aiohttp
+
         file = await bot.get_file(photo.file_id)
-        file_path = file.file_path
-        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
-
-        import aiohttp, aiofiles, os
-
-        save_dir = 'media/chat_images'
-        os.makedirs(save_dir, exist_ok=True)
-        file_name = os.path.basename(file_path)
-        save_path = os.path.join(save_dir, file_name)
+        file_url = f"https://api.telegram.org/file/bot{TOKEN}/{file.file_path}"
 
         async with aiohttp.ClientSession() as session:
             async with session.get(file_url) as resp:
                 if resp.status == 200:
-                    f = await aiofiles.open(save_path, mode='wb')
-                    await f.write(await resp.read())
-                    await f.close()
-                
-        channel_layer = get_channel_layer()
-        telegram = await sync_to_async(TelegramUser.objects.get)(user_id=user.id)
-        from django.core.files import File
+                    image_data = await resp.read()
 
-        with open(save_path, 'rb') as f:
-            django_file = File(f)
-            saved_message = await sync_to_async(Message.objects.create)(
-                telegramuser=telegram,
-                room_name=user.id,
-                image=django_file,
-                is_read=True
-    )
+                    telegram_user = await sync_to_async(TelegramUser.objects.get)(user_id=user.id)
+                    django_file = ContentFile(image_data, name=f"{photo.file_unique_id}.jpg")
+
+                    saved_message = await sync_to_async(Message.objects.create)(
+                        telegramuser=telegram_user,
+                        room_name=telegram_user.user_id,
+                        image=django_file,
+                        is_read=True
+                    )
+        channel_layer = get_channel_layer()
         await channel_layer.group_send(
             "chat_global",
             {

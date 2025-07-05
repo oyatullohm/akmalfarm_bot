@@ -2,6 +2,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import CallbackQuery, BotCommand
 from aiogram.fsm.state import StatesGroup, State
+from django.core.files.base import ContentFile
 from channels.layers import get_channel_layer
 from aiogram.fsm.context import FSMContext
 from aiogram import Bot, Dispatcher, html
@@ -18,6 +19,7 @@ import asyncio
 import logging
 import environ
 import aiohttp
+import base64
 import django
 import sys
 import re
@@ -34,7 +36,6 @@ from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from django.utils import timezone
 from main.models import *
-from django.core.files.base import ContentFile
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
     
 GROUP_ID = -1002524424597 

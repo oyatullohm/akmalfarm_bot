@@ -121,12 +121,12 @@ def telegram(request):
     return render(request, 'telegram.html', {'page_obj':page_obj})
 
 
-
+@is_login
 def room(request, room_name):
     messages = Message.objects.filter(room_name=str(room_name))
     users = TelegramUser.objects.annotate(
     last_message_time=Max('telegrams__timestamp')
-        ).order_by('-last_message_time')
+        ).order_by('-last_message_time')[:100]
 
 
     return render(request, "chat/room.html", {

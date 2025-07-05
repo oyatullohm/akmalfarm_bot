@@ -12,7 +12,7 @@
             <table class="table table-hover align-middle mb-0">
               <thead class="table-primary text-center">
                 <tr>
-                  <th>User id</th>
+                  <th>Telegram id</th>
                   <th>First  Name</th>
                   <th>Phone</th>
                   <th>Username</th>
@@ -22,7 +22,7 @@
               <tbody class="text-center">
                 {% for i in page_obj %}
                 <tr>
-                  <td>{{i.id}}</td>
+                  <td>{{i.user_id}}</td>
                   <td>{{i.first_name}}</td>
                   <td>{{i.phone_number}}</td>
                   <td><a href="https://t.me/{{ i.username }}" target="_blank">@{{ i.username }}</a></td>

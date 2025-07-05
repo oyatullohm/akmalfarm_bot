@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import *
-from django.db.models import Count, F, Q
 
 @csrf_exempt 
 def toggle_status(request, user_id):
@@ -20,9 +19,6 @@ def load_messages(request, user_id):
     messages = Message.objects.filter(room_name=str(user_id)).order_by('timestamp')
 
     messages.update(is_read=False)
-    # for i in messages:
-    #     print(i.is_read)
-
     try:
         user = TelegramUser.objects.get(user_id=int(user_id))
         user_info = {

@@ -145,11 +145,12 @@ function startChat(user_id) {
                 );
             });
             
-            scrollToBottom(true);
+            
             updateUnreadCount(0, user_id);
             setupWebSocket(user_id);
 
             setTimeout(() => {
+                scrollToBottom();
                 if (currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
                     currentChatSocket.send(JSON.stringify({ command: 'mark_read' }));
                 }
@@ -277,13 +278,6 @@ function updateUnreadBadges(counts) {
     });
 }
 
-// Scroll pastga tushirish
-function scrollToBottom(force = false) {
-    const container = document.getElementById('chat-log');
-    if (container) {
-        container.scrollTop = container.scrollHeight;
-    }
-}
 
 
 // Voice yozib yuborish
@@ -403,13 +397,12 @@ function updateUnreadCount(count, user_id, username = '', image_url = '') {
 }
 
 // Scroll pastga tushirish
-function scrollToBottom(force = false) {
+function scrollToBottom() {
     const container = document.getElementById('chat-log');
     if (container) {
         container.scrollTop = container.scrollHeight;
     }
 }
-
 // Enter bilan yuborish
 document.getElementById('chat-message-input').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
