@@ -18,7 +18,7 @@
 		<div id="profile">
 			<div class="wrap">
 				<img id="profile-img" src="{% static 'photo_2025-07-02_07-00-43.jpg' %}" class="online" alt="" />
-				<p>{{ request.user}}</p>
+				<p>AkmalFarm</p>
 
 			</div>
 		</div>
@@ -34,7 +34,14 @@
 
               {% endif %}
               <div class="meta">
+                {% if user.username %}
                 <p class="name">{{ user.username }}</p>
+                {% elif  user.phone_number %}
+                <p class="name">{{ user.phone_number }}</p>
+                {% else %}
+                <p class="name">{{ user.user_id }}</p>
+                {% endif %}
+
                 <p class="badge" style="background-color: rgb(206, 212, 210);" id="unread-count-{{ user.user_id }}">{{ user.unread_count }}</p>
               </div>
             </div>
@@ -127,8 +134,17 @@ function startChat(user_id) {
     fetch(`/load_messages/${user_id}/`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('telegramusername').textContent = data.user_info.username;
-            document.getElementById('telegramuserimg').src = data.user_info.img || 'default_avatar.png';
+                let displayName = "";
+                if (data.user_info.username) {
+                    displayName = data.user_info.username;
+                } else if (data.user_info.phone_number) {
+                    displayName = data.user_info.phone_number;
+                } else {
+                    displayName = data.user_info.user_id;
+                } 
+            document.getElementById('telegramusername').textContent = displayName;
+
+            document.getElementById('telegramuserimg').src = data.user_info.img || '{% static "photo_2025-07-02_07-00-43.jpg" %}';
 
             const list = document.getElementById('messages-list');
             list.innerHTML = '';

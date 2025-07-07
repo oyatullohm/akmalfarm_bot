@@ -24,6 +24,7 @@ def load_messages(request, user_id):
         user_info = {
             'username': user.username,
             'user_id': user.user_id,
+            'phone_number':user.phone_number,
             'img': user.image.url if user.image else None
         }
     except TelegramUser.DoesNotExist:
