@@ -268,8 +268,6 @@ function addMessageElement(content, timestamp, user_id, image_url = null, voice_
 }
 
 
-
-
 // Unread badge yangilash
 function updateUnreadBadges(counts) {
     if (!Array.isArray(counts)) return;
@@ -279,17 +277,26 @@ function updateUnreadBadges(counts) {
         if (badge) {
             badge.textContent = item.unread_count > 0 ? item.unread_count : '';
         } else {
-            const contactsList = document.getElementById('contacts-list');
+            const contactsList = document.querySelector('#contacts ul');
             if (contactsList) {
                 const li = document.createElement('li');
+                li.className = "contact";
                 li.id = `telegramuser-${item.user_id}`;
                 li.innerHTML = `
-                    <div onclick="startChat(${item.user_id})">
-                        <img src="${item.image || 'default_avatar.png'}" width="40">
-                        <span>${item.username}</span>
-                        <span class="badge bg-danger" id="unread-count-${item.user_id}">${item.unread_count}</span>
-                    </div>`;
-                contactsList.appendChild(li);
+                    <div class="wrap" onclick="startChat(${item.user_id})">
+                        <img src="${item.image.url || '{% static "photo_2025-07-02_07-00-43.jpg" %}'}" alt="${item.username || item.phone_number || item.user_id}">
+                        <div class="meta">
+                            <p class="name">${item.username || item.phone_number || item.user_id}</p>
+                            <p class="badge" style="background-color: rgb(206, 212, 210);" id="unread-count-${item.user_id}">${item.unread_count}</p>
+                        </div>
+                    </div>
+                `;
+            
+                contactsList.prepend(li);
+
+               
+                const br = document.createElement('br');
+                contactsList.prepend(br);
             }
         }
     });
@@ -384,7 +391,7 @@ document.getElementById('image-upload').addEventListener('change', (e) => {
 function updateUnreadCount(count, user_id, username = '', image_url = '') {
     let badge = document.getElementById(`unread-count-${user_id}`);
     let contactItem = document.getElementById(`telegramuser-${user_id}`);
-    let contactsList = document.getElementById('contacts-list');
+    let contactsList = document.getElementById('contacts');
 
     if (!contactItem && count > 0 && contactsList) {
         contactItem = document.createElement('li');

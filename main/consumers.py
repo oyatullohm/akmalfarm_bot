@@ -213,9 +213,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             TelegramUser.objects.annotate(
                 unread_count=Count(
                     'telegrams',
-                    filter=Q(telegrams__is_read=True)  # unread
+                    filter=Q(telegrams__is_read=True)
                 )
-            ).values(
+            ).filter(unread_count__gte=1)  # 0 dan katta yoki teng bo'lganlarni chiqarsin
+            .values(
                 'user_id',
                 'phone_number',
                 'first_name',
@@ -232,7 +233,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'bulk_unread_update',
             'counts': users
         }))
-
     @database_sync_to_async
     def mark_as_read(self, user_id):
         Message.objects.filter(

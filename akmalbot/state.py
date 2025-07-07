@@ -21,10 +21,11 @@ import environ
 import aiohttp
 import base64
 import django
+import redis
+import json
 import sys
 import re
 import os 
-
 env = environ.Env()
 environ.Env.read_env()
 
@@ -37,7 +38,8 @@ from django.utils.timezone import now
 from django.utils import timezone
 from main.models import *
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-    
+r = redis.Redis(host='localhost', port=6379, db=0)
+  
 # GROUP_ID = -1002524424597 
 GROUP_ID = -4724451433
 

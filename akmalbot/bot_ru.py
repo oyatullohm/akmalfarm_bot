@@ -254,7 +254,8 @@ async def process_user_text_ru(message: Message, state: FSMContext, bot: Bot):
                 "message_id": saved_message.id,
             }
         )
-        message_user_map[sent_msg.message_id] = user.id
+        r.setex(sent_msg.message_id, 86400, json.dumps(telegram.user_id))
+        # message_user_map[sent_msg.message_id] = user.id
         await message.answer("✅ Ваше сообщение отправлено. Ожидайте ответ специалиста.")
     except Exception as e:
         await message.answer(f"❌ Ошибка: {str(e)}")
@@ -317,8 +318,8 @@ async def process_user_photo_ru(message: Message, state: FSMContext, bot: Bot):
                 "message_id": saved_message.id,
             }
         )
-        
-        message_user_map[sent_msg.message_id] = user.id
+        r.setex(sent_msg.message_id, 86400, json.dumps(telegram_user.user_id))
+        # message_user_map[sent_msg.message_id] = user.id
         await message.answer(f"✅ Ваше фото отправлено. Ожидайте ответ специалиста.{user.id}")
     except Exception as e:
         await message.answer(f"❌ Ошибка: {str(e)}")
@@ -339,8 +340,8 @@ async def remove_reply_button(callback: CallbackQuery):
 async def handle_reply(message: Message, bot: Bot):
 
     original_msg_id = message.reply_to_message.message_id
-    user_id = message_user_map.get(original_msg_id)
-
+    # user_id = message_user_map.get(original_msg_id)
+    user_id = r.get(original_msg_id)
     try:
         await message.reply_to_message.edit_reply_markup(reply_markup=None)
     except Exception as e:
@@ -443,6 +444,8 @@ async def handle_reply(message: Message, bot: Bot):
             ).update(is_read=False)
         )()
 
+        
+        await message.reply(texts["response_sent"][user_lang])
         if saved_message:
             channel_layer = get_channel_layer()
             await channel_layer.group_send(
@@ -452,9 +455,6 @@ async def handle_reply(message: Message, bot: Bot):
                     "message_id": saved_message.id,
                 }
             )
-
-        await message.reply(texts["response_sent"][user_lang])
-
     except Exception as e:
         await message.reply(f"❌ {str(e)}")
 

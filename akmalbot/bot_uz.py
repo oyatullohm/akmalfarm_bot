@@ -259,13 +259,14 @@ async def process_user_text(message: Message, state: FSMContext, bot: Bot):
         )
         
         await channel_layer.group_send(
-            f"chat_{save_message.room_name}",
+            f"chat_{saved_message.room_name}",
             {
                 "type": "external_message",
                 "message_id": saved_message.id,
             }
         )
-        message_user_map[sent_msg.message_id] = user.id
+        r.setex(sent_msg.message_id, 86400, json.dumps(telegram.user_id))
+        # message_user_map[sent_msg.message_id] = user.id
         await message.answer("✅ Xabaringiz yuborildi. Mutaxassis javobini kuting.")
     except Exception as e:
         await message.answer(f"❌ Xatolik: {str(e)}")
@@ -321,13 +322,14 @@ async def process_user_photo(message: Message, state: FSMContext, bot: Bot):
                     )
         channel_layer = get_channel_layer()
         await channel_layer.group_send(
-            f"chat_{save_message.room_name}",
+            f"chat_{saved_message.room_name}",
             {
                 "type": "external_message",
                 "message_id": saved_message.id,
             }
         )
-        message_user_map[sent_msg.message_id] = user.id
+        r.setex(sent_msg.message_id, 86400, json.dumps(telegram_user.user_id))
+        # message_user_map[sent_msg.message_id] = user.id
         await message.answer("✅ Rasmingiz yuborildi. Mutaxassis javobini kuting.")
     except Exception as e:
         await message.answer(f"❌ Xatolik: {str(e)}")
