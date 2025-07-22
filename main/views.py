@@ -46,6 +46,8 @@ def login_(request):
         except:
             pass
     return render(request, 'auth/login.html')
+
+
 @is_login
 def add_doctor(request):
     if request.method == "POST":
@@ -123,15 +125,16 @@ def telegram(request):
 
 @is_login
 def room(request, room_name):
-    messages = Message.objects.filter(room_name=str(room_name))
-    users = TelegramUser.objects.annotate(
-    last_message_time=Max('telegrams__timestamp')
-        ).order_by('-last_message_time')[:100]
-
-
+    # messages = Message.objects.filter(room_name=str(room_name))
+    users = TelegramUser.objects.filter(
+            telegrams__isnull=False
+        ).annotate(
+            last_message_time=Max('telegrams__timestamp')
+        ).order_by('-last_message_time')
+        
     return render(request, "chat/room.html", {
         "room_name": room_name,
-        "messages":messages,
+        # "messages":messages,
         "users":users
         
         })

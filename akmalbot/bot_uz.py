@@ -210,16 +210,66 @@ async def cancel_feedback(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("❌ Aloqa tugatildi. Qayta yozish uchun  dan Retsept yuklash tallang.")
 
-
 @router.callback_query(lambda c: c.data == "aloqa")
 async def admin_start(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(
-        "📝 Siz  savollaringizni yuborishingiz mumkin.\n"
+    await callback.message.answer("Assalomu alekum! Sizga qaysi filial qulay?")
+    await state.set_state(AdminPost.locationn_uz_text)
+    await callback.answer()
+
+
+@router.message(AdminPost.locationn_uz_text, F.text)
+async def Locationn_uz_text_fun(message: Message, state: FSMContext, bot: Bot):
+    await message.answer(
+        "📝 Siz savollaringizni yuborishingiz mumkin.\n"
         "Matn yoki rasm yuboring, biz javob beramiz.\n\n"
         "⛔ Yopish uchun: /cancel"
     )
-    await state.set_state(AdminPost.waiting_for_text)
-    await callback.answer()
+    user = message.from_user
+    username = (
+    f"@{user.username}" if user.username 
+    else user.full_name if user.full_name 
+    else f"ID:{user.id}"
+    )
+    user_profile = f"<a href='tg://user?id={user.id}'>{username}</a>"
+    text = message.text
+
+    try:
+        sent_msg = await bot.send_message(
+            chat_id=GROUP_ID,
+            text=f"{text}\n\n👤 Yuboruvchi: {user_profile}",
+            reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="✉️ Javob yozilmagan",
+                        callback_data=f"reply_to_"
+                    )
+                ]
+            ]
+        ),
+            parse_mode="HTML"
+        )
+        channel_layer = get_channel_layer()
+        telegram = await sync_to_async(TelegramUser.objects.get)(user_id=user.id)
+        saved_message =  await sync_to_async(Message.objects.create)(
+            telegramuser=telegram,
+            room_name=user.id,
+            content=text,
+            is_read=True 
+        )
+        
+        await channel_layer.group_send(
+            f"chat_{saved_message.room_name}",
+            {
+                "type": "external_message",
+                "message_id": saved_message.id,
+            }
+        )
+        r.setex(sent_msg.message_id, 86400, json.dumps(telegram.user_id))
+        await state.set_state(AdminPost.waiting_for_text)
+    except Exception as e:
+        await message.answer(f"❌ Xatolik: {str(e)}")
+
 
 
 @router.message(AdminPost.waiting_for_text, F.text)
@@ -347,7 +397,7 @@ async def get_group_id(message: Message):
 async def search_dori(message: types.Message, state: FSMContext):
     dori_nomi = message.text.strip()
     
-    response = requests.get(f'https://akmalfarm.uz/api/product/?search={dori_nomi}')
+    response = requests.get(f'https://akmalfarm.uz/api/search/?search={dori_nomi}')
 
     if response.status_code == 200:
         data = response.json()

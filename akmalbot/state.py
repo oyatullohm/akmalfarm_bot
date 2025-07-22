@@ -61,11 +61,13 @@ class BotStates(StatesGroup):
 
 class AdminPost(StatesGroup):
     waiting_for_text = State()
+    locationn_uz_text = State()
     waiting_for_photo = State()
     photo_choice = State()
     waiting_for_group_response = State()
     
     waiting_for_text_ru = State()
+    locationn_ru_text = State()
     waiting_for_photo_ru = State()
     photo_choice_ru = State()
     waiting_for_group_response_ru  = State()

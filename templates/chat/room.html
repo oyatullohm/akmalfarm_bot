@@ -27,7 +27,7 @@
           {% for user in users %}
           <li class="contact" id="telegramuser-{{ user.user_id }}">
             <div class="wrap" onclick="startChat({{ user.user_id }})">
-                {% if user.image%}
+                {% if user.image %}
               <img src="{{ user.image.url }}" alt="{{ user.username }}">
               {% else %}
               <img src="{% static 'photo_2025-07-02_07-00-43.jpg' %}" alt="{{ user.username }}">
@@ -64,47 +64,18 @@
 
     <div id="chat-log" class="border rounded  p-2 mb-4" style="height: 400px; overflow-y: auto; background-color: rgb(147, 201, 145);">
       <ul id="messages-list" class="list-unstyled whitem-0 p-0">
-       {% for message in messages %}
-<li class="d-flex mb-3
-    {% if message.user %}
-        justify-content-end
-    {% else %}
-        justify-content-start
-    {% endif %}
-">
-    <div class="message-content p-2 rounded bg-white text-dark position-relative" 
-         style="max-width: 70%; min-width: 100px; word-wrap: break-word; padding-bottom: 25px;">
-        {% if message.content %}
-            <p class="mb-1">{{ message.content }}</p>
-        {% endif %}
-
-        {% if message.image %}
-            <img src="{{ message.image.url }}" class="mb-1" style="max-width: 100%; border-radius: 6px;">
-        {% endif %}
-
-        {% if message.voice %}
-            <audio controls preload="auto" style="width: 100%;">
-                <source src="{{ message.voice.url }}" type="audio/ogg">
-                Sizning brauzeringiz audio tagini qo'llab-quvvatlamaydi.
-            </audio>
-        {% endif %}
-
-        <small class="text-muted position-absolute" style="bottom: 5px; right: 10px; font-size: 0.7rem;">
-            {{ message.timestamp|time:"H:i" }}
-        </small>
-    </div>
-</li>
-{% endfor %}
+     
 
       </ul>
     </div>
 
    <div class="d-flex">
   <input type="text" id="chat-message-input" class="form-control form-control-lg" placeholder="Xabaringizni yozing..." autocomplete="off">
- <input type="file" id="image-upload" accept="image/*" style="display: none;">
-  <button id="image-upload-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2"  style="width: 44px; height: 44px;">
+ <input type="file" id="paste-image-input" accept="image/*" class="form-control" style="width: 30% !important;" placeholder="Ctrl + V qiling yoki tanlang">
+<!-- <button id="send-image-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2" style="width: 44px; height: 44px;">
     <img src="{% static 'icons8.png' %}" width="24" alt="">
-  </button>
+</button> -->
+
   <!-- Mikrofonga yozish tugmasi -->
 <button id="voice-record-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2" style="width: 44px; height: 44px;">🎙️</button>
 
@@ -134,6 +105,12 @@ function startChat(user_id) {
     fetch(`/load_messages/${user_id}/`)
         .then(response => response.json())
         .then(data => {
+
+                if (!data.messages || data.messages.length === 0) {
+                    alert("Bu foydalanuvchi bilan hali hech qanday xabar almashilmagan.");
+                    return;
+                }
+
                 let displayName = "";
                 if (data.user_info.username) {
                     displayName = data.user_info.username;
@@ -150,16 +127,7 @@ function startChat(user_id) {
             list.innerHTML = '';
 
             data.messages.forEach(msg => {
-                // console.log("Xabar:", msg);
-                //console.log("Timestamp:", msg.timestamp);
-                addMessageElement(
-                    msg.content,
-                    msg.timestamp,
-                    msg.user_id,
-                    msg.image_url,
-                    msg.voice
-                    
-                );
+                addMessageElement(msg.content, msg.timestamp, msg.user_id, msg.image_url, msg.voice);
             });
             
             
@@ -179,7 +147,9 @@ function startChat(user_id) {
 }
 // WebSocket setup
 function setupWebSocket(user_id) {
-    currentChatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${user_id}/`);
+    //currentChatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${user_id}/`);
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    currentChatSocket = new WebSocket(`${protocol}://${window.location.host}/ws/chat/${user_id}/`);
 
     currentChatSocket.onopen = function() {
         console.log("WebSocket ochildi");
@@ -272,36 +242,43 @@ function addMessageElement(content, timestamp, user_id, image_url = null, voice_
 function updateUnreadBadges(counts) {
     if (!Array.isArray(counts)) return;
 
+    const contactsList = document.querySelector('#contacts ul');
+    if (!contactsList) return;
+
     counts.forEach(item => {
+        if (item.unread_count <= 0) return;  // 👈 Bu qatorda muammoni to‘xtatamiz
+
         const badge = document.getElementById(`unread-count-${item.user_id}`);
+        const liId = `telegramuser-${item.user_id}`;
+
         if (badge) {
             badge.textContent = item.unread_count > 0 ? item.unread_count : '';
-        } else {
-            const contactsList = document.querySelector('#contacts ul');
-            if (contactsList) {
-                const li = document.createElement('li');
-                li.className = "contact";
-                li.id = `telegramuser-${item.user_id}`;
-                li.innerHTML = `
-                    <div class="wrap" onclick="startChat(${item.user_id})">
-                        <img src="${item.image.url || '{% static "photo_2025-07-02_07-00-43.jpg" %}'}" alt="${item.username || item.phone_number || item.user_id}">
-                        <div class="meta">
-                            <p class="name">${item.username || item.phone_number || item.user_id}</p>
-                            <p class="badge" style="background-color: rgb(206, 212, 210);" id="unread-count-${item.user_id}">${item.unread_count}</p>
-                        </div>
-                    </div>
-                `;
-            
-                contactsList.prepend(li);
 
-               
-                const br = document.createElement('br');
-                contactsList.prepend(br);
+            const li = document.getElementById(liId);
+            if (li) {
+                contactsList.prepend(li);
             }
+        } else {
+            const li = document.createElement('li');
+            li.className = "contact";
+            li.id = liId;
+            li.innerHTML = `
+                <div class="wrap" onclick="startChat(${item.user_id})">
+                    <img src="${item.image?.url || '{% static "photo_2025-07-02_07-00-43.jpg" %}'}" alt="${item.username || item.phone_number || item.user_id}">
+                    <div class="meta">
+                        <p class="name">${item.username || item.phone_number || item.user_id}</p>
+                        <p class="badge" style="background-color: rgb(206, 212, 210);" id="unread-count-${item.user_id}">${item.unread_count}</p>
+                    </div>
+                </div>
+                <br/>
+            `;
+
+            contactsList.prepend(li);
+            // const br = document.createElement('br');
+            // contactsList.prepend(br);
         }
     });
 }
-
 
 
 // Voice yozib yuborish
@@ -364,28 +341,78 @@ function sendMessage() {
 }
 
 // Rasm yuborish
-document.getElementById('image-upload-btn').addEventListener('click', () => {
-    document.getElementById('image-upload').click();
+
+
+let pastedImageFile = null;
+let selectedFile = null;
+
+// Ctrl + V orqali paste
+document.getElementById('paste-image-input').addEventListener('paste', (e) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const file = items[i].getAsFile();
+            pastedImageFile = file;
+            selectedFile = null;  // Tanlangan faylni bekor qilamiz
+            // alert("Paste qilingan rasm qabul qilindi. Endi tugmani bosing yuborish uchun.");
+            break;
+        }
+    }
 });
 
-document.getElementById('image-upload').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
+document.getElementById('paste-image-input').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        selectedFile = file;
+        pastedImageFile = null;  
+        // alert("Tanlangan rasm qabul qilindi. Endi tugmani bosing yuborish uchun.");
+    }
+});
+
+// Tugmani bosganda yuborish
+const pasteInput = document.getElementById('paste-image-input');
+// const sendImageBtn = document.getElementById('send-image-btn');
+
+// sendImageBtn.addEventListener('click', sendImage);
+
+// ENTER bilan yuborish
+pasteInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        sendImage();
+    }
+});
+
+function sendImage() {
+    let fileToSend = pastedImageFile || selectedFile;
+
+    if (!fileToSend) {
+        // alert("Avval rasm tanlang yoki Ctrl + V qiling.");
+        return;
+    }
+
+    if (fileToSend.size > 5 * 1024 * 1024) {
         alert("Rasm 5MB dan katta bo'lmasligi kerak!");
+        pastedImageFile = null;
+        selectedFile = null;
         return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
         if (currentChatSocket && currentChatSocket.readyState === WebSocket.OPEN) {
-            
             currentChatSocket.send(JSON.stringify({ image: event.target.result }));
+
+            pastedImageFile = null;
+            selectedFile = null;
+            pasteInput.value = '';  // Fayl inputni tozalash
         }
     };
-    reader.readAsDataURL(file);
-});
+    reader.readAsDataURL(fileToSend);
+}
+
+
 
 // Unread count yangilash
 function updateUnreadCount(count, user_id, username = '', image_url = '') {
@@ -436,6 +463,8 @@ document.getElementById('chat-message-input').addEventListener('keypress', (e) =
     }
 });
 
+
+
 document.getElementById('chat-message-submit').addEventListener('click', sendMessage);
 
 
@@ -443,7 +472,7 @@ document.getElementById('chat-message-submit').addEventListener('click', sendMes
 document.addEventListener('DOMContentLoaded', function() {
     {% if users.0 %}
     startChat({{ users.0.user_id }});
-    {% endif %}
+   {% endif %}
 });
 
 
