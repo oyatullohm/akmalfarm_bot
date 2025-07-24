@@ -152,14 +152,12 @@ from Admin.settings import TOKEN
 
 def messages_telegramuser(request):
     token = TOKEN
-    # if request.method == "POST":
-            
     users =  TelegramUser.objects.all()
     message = request.POST.get('message')
     for i in users:
         url = f'https://api.telegram.org/bot{token}/sendMessage'
         payload = {
-            'chat_id': i.id,
+            'chat_id': i.user_id,
             'text':message,
             'parse_mode': 'HTML'
         }
