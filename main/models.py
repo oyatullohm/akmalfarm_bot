@@ -71,3 +71,11 @@ class Message(models.Model):
     @property
     def message_type(self):
         return 'image' if self.image else 'text'
+    
+    
+class Shablon(models.Model):
+    text = models.CharField(max_length=255)
+    
+    def __str__(self):
+        return self.text
+           

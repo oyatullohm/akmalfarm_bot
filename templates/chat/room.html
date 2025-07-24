@@ -57,6 +57,18 @@
 			<img id="telegramuserimg" src="{% static 'photo_2025-07-02_07-00-43.jpg' %}" alt="" />
 			<p id="telegramusername"> AkmalFarm</p>
 		</div>
+          <div class="d-flex align-items-center gap-2">
+        <select id="text-select" class="form-select" style="max-width: 300px;">
+            {% for t in shablon %}
+            <option value="{{ t }}" style="font-size: 18px;">{{ t }}</option>
+            {% endfor %}
+        </select>
+
+        <button id="copy-btn" onclick="copySelectedText()" class="btn btn-primary">📋 Nusxa olish</button>
+        </div>
+        
+        
+    
 <div class="container my-4">
   <div class="border rounded shadow p-3 bg-light">
     
@@ -71,7 +83,14 @@
 
    <div class="d-flex">
   <input type="text" id="chat-message-input" class="form-control form-control-lg" placeholder="Xabaringizni yozing..." autocomplete="off">
- <input type="file" id="paste-image-input" accept="image/*" class="form-control" style="width: 30% !important;" placeholder="Ctrl + V qiling yoki tanlang">
+ <!-- Paste uchun zona -->
+<div id="paste-area" contenteditable="true" class="form-control" style="width: 30% !important;">
+    Ctrl + V
+</div>
+
+<!-- Fayl tanlash uchun input -->
+<input type="file" id="paste-image-input" accept="image/*" class="form-control" style="width: 30% !important;">
+
 <!-- <button id="send-image-btn" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2" style="width: 44px; height: 44px;">
     <img src="{% static 'icons8.png' %}" width="24" alt="">
 </button> -->
@@ -342,42 +361,42 @@ function sendMessage() {
 
 // Rasm yuborish
 
-
 let pastedImageFile = null;
 let selectedFile = null;
 
-// Ctrl + V orqali paste
-document.getElementById('paste-image-input').addEventListener('paste', (e) => {
+const pasteInput = document.getElementById('paste-image-input');
+const pasteArea = document.getElementById('paste-area');
+
+// Paste hodisasi faqat pasteArea (div) uchun
+pasteArea.addEventListener('paste', (e) => {
+    e.preventDefault();  // Brauzerning default paste funksiyasini to‘xtatamiz
+
     const items = e.clipboardData.items;
     for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
             const file = items[i].getAsFile();
             pastedImageFile = file;
-            selectedFile = null;  // Tanlangan faylni bekor qilamiz
-            // alert("Paste qilingan rasm qabul qilindi. Endi tugmani bosing yuborish uchun.");
+            selectedFile = null;
+
+            // Rasm qo‘shilmasligi uchun tozalaymiz
+            pasteArea.innerHTML = "<b>Yuborng</b>";
             break;
         }
     }
 });
 
 
-document.getElementById('paste-image-input').addEventListener('change', (e) => {
+// Fayl inputdan tanlash
+pasteInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         selectedFile = file;
-        pastedImageFile = null;  
-        // alert("Tanlangan rasm qabul qilindi. Endi tugmani bosing yuborish uchun.");
+        pastedImageFile = null;
     }
 });
 
-// Tugmani bosganda yuborish
-const pasteInput = document.getElementById('paste-image-input');
-// const sendImageBtn = document.getElementById('send-image-btn');
-
-// sendImageBtn.addEventListener('click', sendImage);
-
-// ENTER bilan yuborish
-pasteInput.addEventListener('keypress', (e) => {
+// ENTER bilan yuborish (pasteArea ustida Enter bosilsa)
+pasteArea.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault();
         sendImage();
@@ -388,7 +407,7 @@ function sendImage() {
     let fileToSend = pastedImageFile || selectedFile;
 
     if (!fileToSend) {
-        // alert("Avval rasm tanlang yoki Ctrl + V qiling.");
+        // alert("Avval rasm tanlang yoki Ctrl + V");
         return;
     }
 
@@ -406,7 +425,8 @@ function sendImage() {
 
             pastedImageFile = null;
             selectedFile = null;
-            pasteInput.value = '';  // Fayl inputni tozalash
+            pasteInput.value = '';
+            pasteArea.innerHTML = "Ctrl + V ";
         }
     };
     reader.readAsDataURL(fileToSend);
@@ -533,5 +553,23 @@ $(window).on('keydown', function(e) {
   }
 });
 //# sourceURL=pen.js
+
+function copySelectedText() {
+  const select = document.getElementById('text-select');
+  const selectedValue = select.value;
+  const button = document.getElementById('copy-btn');
+
+  navigator.clipboard.writeText(selectedValue)
+    .then(() => {
+      // Tugmani yashiramiz
+      button.style.display = 'none';
+
+      // 1 soniyadan keyin qayta ko‘rsatamiz
+      setTimeout(() => {
+        button.style.display = 'inline-block';
+      }, 2000);
+    });
+}
+
 </script>
 </body></html>

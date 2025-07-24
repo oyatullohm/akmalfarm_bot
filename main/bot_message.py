@@ -17,29 +17,50 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 TOKEN  = env.str('TOKEN')
 
+
 def send_telegram_message(telegram_id, message=None, image_path=None):
     token = TOKEN 
+    # latitude = None
+    # longitude = None
+
+    # match = re.search(r'https://maps\.google\.com/maps\?q=([-+]?[0-9]*\.?[0-9]+),([-+]?[0-9]*\.?[0-9]+)', message)
+
+    # if match:
+    #     latitude = match.group(1)
+    #     longitude = match.group(2)
+
+    #     message = re.sub(r'📍 Локация \(https://maps\.google\.com/maps\?q=[\d.]+,[\d.]+.*?\)', '', message).strip()
 
     if image_path:
+
         url = f'https://api.telegram.org/bot{token}/sendPhoto'
         with open(image_path, 'rb') as photo_file:
             files = {'photo': photo_file}
             payload = {
                 'chat_id': telegram_id,
-                # 'caption': message if message else '',
+                'caption': message if message else '',
                 'parse_mode': 'HTML'
             }
             requests.post(url, data=payload, files=files)
-    else:
+    elif message:
+
         url = f'https://api.telegram.org/bot{token}/sendMessage'
         payload = {
             'chat_id': telegram_id,
-            'text': message,
+            'text':message,
             'parse_mode': 'HTML'
         }
         requests.post(url, data=payload)
 
-
+    # if latitude and longitude:
+    #     requests.post(
+    #         f'https://api.telegram.org/bot{token}/sendLocation',
+    #         data={
+    #             'chat_id': telegram_id,
+    #             'latitude': latitude,
+    #             'longitude': longitude
+    #         }
+    #     )
 
 def send_telegram_voice(telegram_id, voice_path):
     token = TOKEN  

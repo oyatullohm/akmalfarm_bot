@@ -1,0 +1,21 @@
+{% extends "wrappaer.html" %}
+{% block content %}
+
+{{message}}
+<div class="container">
+    <div class="row">
+        <div class="col">
+           
+            <form action="/messages/telegramuser/" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="exampleFormControlTextarea1" class="form-label">Matin maydoni </label>
+                    <textarea name="message" class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Yuborish</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

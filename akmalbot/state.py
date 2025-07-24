@@ -143,3 +143,6 @@ def save_photo_message(user_id, caption, file_data):
     file_name = f"chat_{user_id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.jpg"
     msg.image.save(file_name, ContentFile(file_data.read()), save=True)
     return msg
+
+
+      

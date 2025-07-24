@@ -1,5 +1,3 @@
-
-
 from django.contrib.auth import login, logout
 from django.shortcuts import render ,redirect
 from django.core.paginator import Paginator
@@ -10,7 +8,7 @@ from django.db.models import Count, Max
 from django.utils.timezone import now
 from .decorators import is_login
 from .models import *
-
+import requests
 
 def register(request):
     user = None
@@ -125,17 +123,45 @@ def telegram(request):
 
 @is_login
 def room(request, room_name):
-    # messages = Message.objects.filter(room_name=str(room_name))
+    shablon = Shablon.objects.all()
+    five_days_ago = now() - timedelta(days=5)
+
     users = TelegramUser.objects.filter(
-            telegrams__isnull=False
-        ).annotate(
-            last_message_time=Max('telegrams__timestamp')
-        ).order_by('-last_message_time')
-        
+        telegrams__isnull=False
+    ).annotate(
+        last_message_time=Max('telegrams__timestamp')
+    ).filter(
+        last_message_time__gte=five_days_ago  # faqat 5 kundan yangi bo‘lsa
+    ).order_by('-last_message_time')
     return render(request, "chat/room.html", {
         "room_name": room_name,
-        # "messages":messages,
+        "shablon":shablon,
         "users":users
         
         })
     
+    
+def messages(request):
+    # users =  TelegramUser.objects.all()
+    # for i in users:
+    #     i.user_id
+    return render(request, 'messages.html')
+
+
+from Admin.settings import TOKEN
+
+def messages_telegramuser(request):
+    token = TOKEN
+    # if request.method == "POST":
+            
+    users =  TelegramUser.objects.all()
+    message = request.POST.get('message')
+    for i in users:
+        url = f'https://api.telegram.org/bot{token}/sendMessage'
+        payload = {
+            'chat_id': i.id,
+            'text':message,
+            'parse_mode': 'HTML'
+        }
+        requests.post(url, data=payload)
+    return render(request, 'messages.html')
