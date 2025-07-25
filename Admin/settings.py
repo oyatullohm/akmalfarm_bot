@@ -13,7 +13,7 @@ SECRET_KEY = env.str('SECRET_KEY')
 TOKEN  = env.str('TOKEN')
 
 
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = ['*']

@@ -142,24 +142,6 @@ def room(request, room_name):
     
     
 def messages(request):
-    # users =  TelegramUser.objects.all()
-    # for i in users:
-    #     i.user_id
     return render(request, 'messages.html')
 
 
-from Admin.settings import TOKEN
-
-def messages_telegramuser(request):
-    token = TOKEN
-    users =  TelegramUser.objects.all()
-    message = request.POST.get('message')
-    for i in users:
-        url = f'https://api.telegram.org/bot{token}/sendMessage'
-        payload = {
-            'chat_id': i.user_id,
-            'text':message,
-            'parse_mode': 'HTML'
-        }
-        requests.post(url, data=payload)
-    return render(request, 'messages.html')

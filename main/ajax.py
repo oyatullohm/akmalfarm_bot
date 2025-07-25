@@ -1,6 +1,10 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from Admin.settings import TOKEN
 from .models import *
+import requests 
+import time
+
 
 @csrf_exempt 
 def toggle_status(request, user_id):
@@ -62,3 +66,38 @@ def load_messages(request, user_id):
     })
 
 
+def messages_telegramuser(request):
+    token = TOKEN
+    users = TelegramUser.objects.all()
+    message = request.POST.get('message')
+
+    success_count = 0
+    failed_count = 0
+
+    for i in users:
+        url = f'https://api.telegram.org/bot{token}/sendMessage'
+        payload = {
+            'chat_id': i.user_id,
+            'text': message,
+            'parse_mode': 'HTML'
+        }
+
+        try:
+            response = requests.post(url, data=payload)
+            result = response.json()
+
+            if result.get("ok"):
+                success_count += 1
+            else:
+                failed_count += 1
+
+
+        except Exception as e:
+            failed_count += 1
+        time.sleep(1) 
+
+    return JsonResponse({
+        'success': True,
+        'xabar_yuborildi': success_count,
+        'xatoliklar_soni': failed_count
+    })
