@@ -5,25 +5,43 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <div id="responseMessage" class="mt-3"></div>
-           
-         <form id="messageForm" method="post">
+            <!-- Javoblar va yuklanish uchun joy -->
+            <div id="responseMessage" class="mt-3" style="display: none;"></div>
+            <div id="loadingMessage" class="mt-3" style="display: none;">
+
+                <div class="alert alert-info">⏳ Yuborilmoqda...</div>
+            </div>
+        <form id="messageForm" method="post">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="exampleFormControlTextarea1" class="form-label">Matin maydoni</label>
                 <textarea name="message" class="form-control" id="exampleFormControlTextarea1" rows="3" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Yuborish</button>
+            <button id="sendButton" type="submit" class="btn btn-primary">Yuborish</button>
         </form>
+
+        
         </div>
     </div>
 </div>
 <script>
 document.getElementById('messageForm').addEventListener('submit', function(e) {
-    e.preventDefault();  // Formani to‘xtatamiz
+    e.preventDefault();
 
-    const message = document.getElementById('exampleFormControlTextarea1').value;
+    const messageInput = document.getElementById('exampleFormControlTextarea1');
+    const message = messageInput.value;
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const sendButton = document.getElementById('sendButton');
+    const responseDiv = document.getElementById('responseMessage');
+    const loadingDiv = document.getElementById('loadingMessage');
+
+    // ✅ Tugma bosilganda input tozalanadi
+    messageInput.value = '';
+
+    // UI holatini o‘zgartiramiz
+    sendButton.style.display = 'none';
+    responseDiv.style.display = 'none';
+    loadingDiv.style.display = 'block';
 
     fetch('/messages/telegramuser/', {
         method: 'POST',
@@ -37,7 +55,10 @@ document.getElementById('messageForm').addEventListener('submit', function(e) {
     })
     .then(response => response.json())
     .then(data => {
-        const responseDiv = document.getElementById('responseMessage');
+        loadingDiv.style.display = 'none';
+        sendButton.style.display = 'inline-block';
+        responseDiv.style.display = 'block';
+
         if (data.success) {
             responseDiv.innerHTML = `
                 <div class="alert alert-success">
@@ -51,12 +72,16 @@ document.getElementById('messageForm').addEventListener('submit', function(e) {
     })
     .catch(error => {
         console.error('Error:', error);
-        document.getElementById('responseMessage').innerHTML = `
+        loadingDiv.style.display = 'none';
+        sendButton.style.display = 'inline-block';
+        responseDiv.style.display = 'block';
+        responseDiv.innerHTML = `
             <div class="alert alert-danger">Serverda xatolik yuz berdi.</div>
         `;
     });
 });
 </script>
+
 
 
 {% endblock content %}

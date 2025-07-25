@@ -65,6 +65,8 @@ def load_messages(request, user_id):
         'user_info': user_info
     })
 
+import logging
+logger = logging.getLogger('telegram_logger')  
 
 def messages_telegramuser(request):
     token = TOKEN
@@ -90,6 +92,8 @@ def messages_telegramuser(request):
                 success_count += 1
             else:
                 failed_count += 1
+                error = result.get("description", "Noma’lum xatolik")
+                logger.warning(f"Xatolik foydalanuvchi {i.user_id} uchun: {error}")
 
 
         except Exception as e:
